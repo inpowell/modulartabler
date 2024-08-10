@@ -50,6 +50,10 @@ count_aggregate <- function(MT, data, ...) {
 #' @export
 #' @md
 #' @importFrom data.table melt dcast
+#' @importFrom tidyr build_wider_spec pivot_wider_spec unite replace_na
+#' @importFrom rlang .env
+#' @importFrom dplyr mutate select arrange across
+#' @importFrom tidyselect all_of
 convert_tabular <- function(
     table,
     formula,
@@ -57,39 +61,24 @@ convert_tabular <- function(
     ...,
     conversion = NULL,
     value_override) {
-  .Value <- NULL # Trick R CMD check https://github.com/Rdatatable/data.table/issues/850#issuecomment-259466153
-
-  table <- data.table::as.data.table(table)
-
-  if (missing(value_override)) {
-    value_override = '.Value'
-  } else if (!(value_override %in% names(table))) {
-    stop("value_override must be present in table")
-  }
-
-  # Convert columns to common type, if requested.
-  if (!is.null(conversion)) {
-    conversion <- match.fun(conversion)
-    table[, c(measures) := lapply(.SD, conversion), .SDcols = measures]
-  }
-
-  # Convert semi-long to long (all measures in rows)
-  table_long <- melt(
-    table, measure.vars = measures,
-    variable.name = '.Measure', variable.factor = TRUE,
-    value.name = '.Value'
+  rowterms <- all.vars(formula[[2]])
+  colterms <- all.vars(formula[[3]])
+  hasMeasure <- '.Measure' %in% colterms
+  colterms <- setdiff(colterms, '.Measure')
+  spec <- build_wider_spec(
+    table,
+    names_from = all_of(colterms),
+    values_from = all_of(unname(measures))
   )
 
-  # Use nice provided names for measures
-  mnn <- names(measures)
-  if (is.null(mnn)) mnn <- measures # Handle unnamed measures vector
-  mnn[!nzchar(mnn)] <- measures[!nzchar(mnn)] # Handle specific unnamed measures
+  specmod <- spec |>
+    mutate(.valname = names(measures)[match(.value, measures)]) |>
+    unite('.name', c(all_of(colterms), '.valname'), sep = '_', remove = FALSE) |>
+    select(-.valname) |>
+    arrange(across(all_of(colterms)), match(.value, .env$measures))
 
-  levels(table_long$.Measure) <- mnn[match(levels(table_long$.Measure), measures)]
+  visualtab <- pivot_wider_spec(table, specmod, id_cols = all_of(rowterms))
 
   # Replace NaNs, etc. with NA
-  table_long[is.na(.Value), .Value := NA]
-
-  # Write to wide format
-  dcast(table_long, formula, value.var = value_override, ...)
+  mutate(visualtab, across(all_of(.env$specmod$.name), \(x) replace_na(x, NA)))
 }
