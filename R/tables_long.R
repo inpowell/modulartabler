@@ -47,7 +47,6 @@ count_aggregate <- function(MT, data, ...) {
 #'   various dimensions separated by an underscore.
 #' @export
 #' @md
-#' @importFrom data.table melt dcast
 #' @importFrom tidyr build_wider_spec pivot_wider_spec unite replace_na
 #' @importFrom rlang .env
 #' @importFrom dplyr mutate select arrange across
