@@ -37,8 +37,6 @@ count_aggregate <- function(MT, data, ...) {
 #'   table. The names of the vector will be used as "pretty" names in the output
 #'   table.
 #' @param ... Passed to `data.table::melt`.
-#' @param conversion (Optional.) A function to convert all measures to a common
-#'   type, such as `as.numeric` or `as.character`.
 #' @param value_override (Optional.) If a supplementary table is needed that
 #'   does not come from the measure columns (e.g. whether a cell needs to be
 #'   suppressed), this argument overrides the value used when converting to
@@ -59,7 +57,6 @@ convert_tabular <- function(
     formula,
     measures = c('No.' = 'n'),
     ...,
-    conversion = NULL,
     value_override) {
   rowterms <- all.vars(formula[[2]])
   colterms <- all.vars(formula[[3]])

@@ -4,14 +4,7 @@
 \alias{convert_tabular}
 \title{Convert count data to tabular form}
 \usage{
-convert_tabular(
-  table,
-  formula,
-  measures = c(No. = "n"),
-  ...,
-  conversion = NULL,
-  value_override
-)
+convert_tabular(table, formula, measures = c(No. = "n"), ..., value_override)
 }
 \arguments{
 \item{table}{A data frame in semi-long format. Each dimension of the table
@@ -28,9 +21,6 @@ table. The names of the vector will be used as "pretty" names in the output
 table.}
 
 \item{...}{Passed to \code{data.table::melt}.}
-
-\item{conversion}{(Optional.) A function to convert all measures to a common
-type, such as \code{as.numeric} or \code{as.character}.}
 
 \item{value_override}{(Optional.) If a supplementary table is needed that
 does not come from the measure columns (e.g. whether a cell needs to be
