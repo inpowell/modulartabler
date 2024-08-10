@@ -25,7 +25,6 @@ Imports:
     dplyr (>= 1.1.2),
     tidyselect,
     tibble,
-    data.table,
     tidyr (>= 1.3.0),
     forcats (>= 1.0.0),
     ROI (>= 1.0.1),
