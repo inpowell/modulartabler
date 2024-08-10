@@ -1,5 +1,5 @@
 test_that("count_aggregate counts and sums correctly", {
-  map <- data.table(
+  map <- data.frame(
     Map = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
                  labels = c(LETTERS[1:4], 'C+D', 'Total')),
     raw = factor(LETTERS[c(1L:4L, 3L:4L, 1L:4L)])
@@ -27,7 +27,7 @@ test_that('convert_tabular converts a semi-long table correctly', {
     suppress = c(FALSE, TRUE, TRUE, rep(FALSE, 9L))
   )
 
-  expected <- data.table(
+  expected <- dplyr::tibble(
     Row = gl(3, 1, 3, labels = c('A', 'B', 'C')),
     'X_No.' = 1:3,
     'X_%' = c(0, 1, 10),
@@ -36,15 +36,13 @@ test_that('convert_tabular converts a semi-long table correctly', {
     'Z_No.' = 7:9,
     'Z_%' = c(50, 60, 70),
     'W_No.' = 10:12,
-    'W_%' = c(80, 90, 100),
-    key = 'Row'
+    'W_%' = c(80, 90, 100)
   )
 
   tabular <- convert_tabular(
     semilong,
     Row ~ Column + .Measure,
-    measures = c('No.' = 'n', '%' = 'percent'),
-    conversion = as.numeric
+    measures = c('No.' = 'n', '%' = 'percent')
   )
 
   expect_equal(tabular, expected)
