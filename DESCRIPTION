@@ -1,0 +1,34 @@
+Package: modulartabler
+Type: Package
+Title: Building count tables from parts
+Version: 0.1.0
+Authors@R: c(
+    person("Ian", "Powell", , "powell.ian.n@gmail.com", role = c("cre", "aut")),
+    person("Peter", "Moritz", , "p.a.moritz@gmail.com", role = "ctb"),
+    person("Hafiz", "Khusyairi", role = "ctb"),
+    person("State of New South Wales NSW Ministry of Health", role = "cph")
+  )
+Description: Builds tables of counts modularly. Each table is described by
+    mapping tables for each dimension. Dimensions can be mixed and matched to
+    build different tables with the same margins. Small cells can be suppressed,
+    and mapping tables can be used to determine what secondary suppression is
+    necessary to prevent back-calculation.
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    testthat,
+    ROI.plugin.highs
+Imports: 
+    R6,
+    purrr,
+    dplyr (>= 1.1.2),
+    tidyselect,
+    tibble,
+    data.table,
+    tidyr (>= 1.3.0),
+    forcats (>= 1.0.0),
+    ROI (>= 1.0.1),
+    cli (>= 3.6.1),
+    rlang (>= 1.1.1)
+RoxygenNote: 7.2.3
