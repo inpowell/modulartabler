@@ -8,8 +8,7 @@ convert_tabular(
   table,
   formula,
   measures = c(No. = "n"),
-  measurename = ".Measure",
-  value_override
+  measurename = ".Measure"
 )
 }
 \arguments{
@@ -29,11 +28,6 @@ table.}
 \item{measurename}{The placeholder name in \code{formula} for distinguishing
 measures, where multiple measures are given. This name is also used as the
 descriptor of measures if used as a row group.}
-
-\item{value_override}{(Optional.) If a supplementary table is needed that
-does not come from the measure columns (e.g. whether a cell needs to be
-suppressed), this argument overrides the value used when converting to
-tabular format.}
 }
 \value{
 \code{convert_tabular} returns a tibble in visual tabular form.
