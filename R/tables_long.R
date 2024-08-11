@@ -52,6 +52,36 @@ count_aggregate <- function(MT, data, ...) {
 #' @importFrom rlang .env
 #' @importFrom dplyr mutate select arrange across
 #' @importFrom tidyselect all_of
+#'
+#' @examples
+#' wbsumm <- dplyr::summarise(
+#'   warpbreaks,
+#'   mean = mean(breaks), sd = sd(breaks),
+#'   .by = c(wool, tension)
+#' )
+#' wbsumm
+#'
+#' # Show wool type in rows, tension and mean/std dev in columns
+#' convert_tabular(
+#'   wbsumm,
+#'   wool ~ tension + .Measure,
+#'   measures = c(Mean = 'mean', 'Std. Dev.' = 'sd')
+#' )
+#'
+#' # Show measure as largest row group with header Statistic
+#' convert_tabular(
+#'   wbsumm,
+#'   Statistic + wool ~ tension,
+#'   measures = c(Mean = 'mean', 'Std. Dev.' = 'sd'),
+#'   measurename = 'Statistic'
+#' )
+#'
+#' # Just show mean
+#' convert_tabular(
+#'   wbsumm,
+#'   tension ~ wool,
+#'   measures = 'mean'
+#' )
 convert_tabular <- function(
     table,
     formula,
