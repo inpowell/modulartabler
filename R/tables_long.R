@@ -100,6 +100,8 @@ convert_tabular <- function(
 
   visualtab <- pivot_wider_spec(table, spec, id_cols = all_of(rowterms))
 
+  visualtab <- arrange(visualtab, across(all_of(rowterms)))
+
   # Replace NaNs, etc. with NA
   mutate(visualtab, across(all_of(.env$spec$.name), \(x) replace_na(x, NA)))
 }
