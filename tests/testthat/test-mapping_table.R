@@ -121,6 +121,119 @@ test_that("RangeMappingTable counts correctly with missings", {
 
 })
 
+test_that("RangeMappingTable other/total args work modularly", {
+
+  MT_total_null <- RangeMappingTable$new(
+    table_name = 'Age',
+    data_col = 'matage',
+    "<20" = c(-Inf, 20),
+    "20-34" = c(20, 35),
+    "35+" = c(35, Inf),
+    .other = "Unknown",
+    .total = NULL
+  )
+
+  MT_other_null <- RangeMappingTable$new(
+    table_name = 'Age',
+    data_col = 'matage',
+    "<20" = c(-Inf, 20),
+    "20-34" = c(20, 35),
+    "35+" = c(35, Inf),
+    .other = NULL,
+    .total = "Total"
+  )
+
+  MT_both_null <- RangeMappingTable$new(
+    table_name = 'Age',
+    data_col = 'matage',
+    "<20" = c(-Inf, 20),
+    "20-34" = c(20, 35),
+    "35+" = c(35, Inf),
+    .other = NULL,
+    .total = NULL
+  )
+
+  test_with_na <- data.frame(matage = c(0:120, rep(NA_real_, 5)))
+
+  exp_both_null <- tibble(
+    Age = forcats::as_factor(c('<20', '20-34', '35+')),
+    n = c(20L, 15L, 86L)
+  )
+
+  exp_other_null <- tibble(
+    Age = forcats::as_factor(c('<20', '20-34', '35+', 'Total')),
+    n = c(20L, 15L, 86L, 121L)
+  )
+
+  exp_total_null <- tibble(
+    Age = forcats::as_factor(c('<20', '20-34', '35+', 'Unknown')),
+    n = c(20L, 15L, 86L, 5L)
+  )
+
+  expect_equal(MT_both_null$count_aggregate(test_with_na), exp_both_null)
+  expect_equal(MT_other_null$count_aggregate(test_with_na), exp_other_null)
+  expect_equal(MT_total_null$count_aggregate(test_with_na), exp_total_null)
+
+  ## Multi-map combinations working correctly
+  map1 <- tibble(
+    Map1 = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
+                  labels = c(LETTERS[1:4], 'C+D', 'Total')),
+    raw1 = factor(LETTERS[c(1L:4L, 3L:4L, 1L:4L)])
+  )
+
+  MT1 <- BaseMappingTable$new(map1, 'raw1', 'Map1')
+
+  MM_both_null <- MultiMappingTable$new(MT1, MT_both_null)
+  MM_other_null <- MultiMappingTable$new(MT1, MT_other_null)
+  MM_total_null <- MultiMappingTable$new(MT1, MT_total_null)
+
+  test_matage_raw1 <- data.frame(matage = c(seq(0, 120, 5), rep(NA_real_, 5))) %>%
+    dplyr::cross_join(data.frame(raw1 = c(LETTERS[1:4], "C")))
+
+  base_cohort <- test_matage_raw1 %>%
+    dplyr::mutate(Age = cut(matage, breaks = c(-Inf, 20, 35, Inf), right = FALSE,
+                            labels = c("<20", "20-34", "35+")) %>%
+                    as.character(),
+                  Age = tidyr::replace_na(Age, replace = "Unknown") %>%
+                    forcats::as_factor()) %>%
+    dplyr::count(Map1 = raw1, Age) %>%
+
+    # Add C+D and total for raw1
+    {dplyr::bind_rows(.,
+                      dplyr::filter(., Map1 %in% c("C", "D")) %>%
+                        dplyr::group_by(Age) %>%
+                        dplyr::summarise(n = sum(n)) %>%
+                        dplyr::mutate(Map1 = "C+D"),
+
+                      dplyr::group_by(., Age) %>%
+                        dplyr::summarise(n = sum(n)) %>%
+                        dplyr::mutate(Map1 = "Total")
+    )} %>%
+
+    dplyr::mutate(Map1 = forcats::as_factor(Map1))
+
+  exp_mm_both_null <- base_cohort %>%
+    dplyr::filter(Age != "Unknown") %>%
+    dplyr::mutate(Age = forcats::as_factor(as.character(Age)))
+
+  exp_mm_total_null <- base_cohort
+
+  exp_mm_other_null <- base_cohort %>%
+    dplyr::filter(Age != "Unknown") %>%
+    {dplyr::bind_rows(.,
+                      dplyr::group_by(., Map1) %>%
+                        dplyr::summarise(n = sum(n)) %>%
+                        dplyr::mutate(Age = "Total"))} %>%
+
+    dplyr::mutate(Age = forcats::as_factor(as.character(Age))) %>%
+    dplyr::arrange(Map1, Age)
+
+  expect_equal(MM_both_null$count_aggregate(test_matage_raw1), tibble::as_tibble(exp_mm_both_null))
+  expect_equal(MM_total_null$count_aggregate(test_matage_raw1), tibble::as_tibble(exp_mm_total_null))
+  expect_equal(MM_other_null$count_aggregate(test_matage_raw1), tibble::as_tibble(exp_mm_other_null))
+
+})
+
 test_that('MultiMappingTable bindings work correctly', {
   map1 <- tibble(
     Map1 = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
