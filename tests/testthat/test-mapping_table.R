@@ -84,7 +84,8 @@ test_that("RangeMappingTable counts correctly with missings", {
 
 })
 
-test_that('MultiMappingTable nullspace is correct', {
+test_that('MultiMappingTable nullspace is equivalent to BaseMappingTable', {
+  withr::local_package('dplyr')
   map1 <- tibble(
     Map1 = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
                  labels = c(LETTERS[1:4], 'C+D', 'Total')),
@@ -100,20 +101,25 @@ test_that('MultiMappingTable nullspace is correct', {
   MT1 <- BaseMappingTable$new(map1, 'raw1', 'Map1')
   MT2 <- BaseMappingTable$new(map2, 'raw2', 'Map2')
 
-  MTM <- MultiMappingTable$new(MT1, MT2)
-
-  matrix <- rbind(
-    c(1L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L), # A, X
-    c(0L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L), # A, Y
-    c(0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L), # B, X
-    c(0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L), # B, Y
-    c(0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 1L, 0L, 1L, 1L, 0L, 1L), # C, X
-    c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 1L), # C, Y
-    c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 1L, 0L, 1L, 1L, 0L, 1L), # D, X
-    c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 1L, 0L, 1L, 1L)  # D, Y
+  MMT <- MultiMappingTable$new(MT1, MT2)
+  BMT <- BaseMappingTable$new(
+    cross_join(map1, map2),
+    c('raw1', 'raw2'),
+    c('Map1', 'Map2')
   )
 
-  expect_true(all(matrix %*% t(MTM$nullspace) == 0))
+  # We don't need these matrices to be equal, we just need them to have the same
+  # rowspace. Equivalently, an invertible matrix X exists s.t. ns_obs = X %*%
+  # ns_exp
+  ns_obs <- MMT$nullspace
+  ns_exp <- MMT$nullspace
+
+  candidate <- t(qr.solve(t(ns_exp), t(ns_obs)))
+
+  # This matrix is invertible?
+  expect_no_error(solve(candidate))
+  # This matrix satisfies the requirements?
+  expect_equal(ns_obs, candidate %*% ns_exp)
 })
 
 test_that("BaseMappingTable with empty nullspace evaluates cleanly", {
