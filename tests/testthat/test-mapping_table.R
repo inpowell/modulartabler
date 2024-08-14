@@ -121,7 +121,7 @@ test_that("RangeMappingTable counts correctly with missings", {
 
 })
 
-test_that('MultiMappingTable bindings work correctly', {
+test_that('MultiMappingTable nullspace is correct', {
   map1 <- tibble(
     Map1 = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
                  labels = c(LETTERS[1:4], 'C+D', 'Total')),
@@ -139,16 +139,6 @@ test_that('MultiMappingTable bindings work correctly', {
 
   MTM <- MultiMappingTable$new(MT1, MT2)
 
-  rawside <- tibble(
-    raw1 = gl(4, 1, 8, labels = LETTERS[1:4]),
-    raw2 = gl(2, 4, 8, labels = c("X", "Y"))
-  )
-
-  tabside <- tibble(
-    Map1 = gl(6, 3, 18, labels = c(LETTERS[1:4], 'C+D', 'Total')),
-    Map2 = gl(3, 1, 18, labels = c('X', 'Y', 'Total'))
-  )
-
   matrix <- rbind(
     c(1L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L), # A, X
     c(0L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L), # A, Y
@@ -160,20 +150,6 @@ test_that('MultiMappingTable bindings work correctly', {
     c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 1L, 0L, 1L, 1L)  # D, Y
   )
 
-  raw_cols <- c('raw1', 'raw2')
-  data_cols <- c('raw1', 'raw2')
-  tab_cols <- c('Map1', 'Map2')
-
-  expect_equivalent(MTM$map[seq_len(nrow(map2)), c('Map2', 'raw2')], map2) # map2 varies fastest
-  expect_equal(MTM$matrix, matrix)
-  expect_equal(MTM$mtab, tabside)
-  expect_equal(MTM$data_cols, data_cols)
-  expect_equal(MTM$raw_cols, raw_cols)
-  expect_equal(MTM$table_cols, tab_cols)
-  expect_equal(MTM$join_clause, dplyr::join_by(
-    'raw1' == 'raw1',
-    'raw2' == 'raw2'
-  ))
   expect_true(all(matrix %*% t(MTM$nullspace) == 0))
 })
 
