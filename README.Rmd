@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # modulartabler
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/inpowell/modulartabler/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/inpowell/modulartabler/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 modulartabler categorises records in a dataset and presents counts in each category in tabular format. Each table of counts is described by a mapping table, which can convert raw data to tabular format. Mapping tables can correspond to a single dimension, or be combined to form a multi-dimensional table.

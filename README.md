@@ -4,6 +4,8 @@
 # modulartabler
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/inpowell/modulartabler/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/inpowell/modulartabler/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 modulartabler categorises records in a dataset and presents counts in
@@ -60,7 +62,7 @@ mileage.
 
 ``` r
 MPG$count_aggregate(mtcars)
-#> # A tibble: 6 x 2
+#> # A tibble: 6 × 2
 #>   `Miles per galleon`     n
 #>   <fct>               <int>
 #> 1 <20.0                  18
@@ -90,7 +92,7 @@ our data are automatic.
 
 ``` r
 Transmission$count_aggregate(mtcars)
-#> # A tibble: 3 x 2
+#> # A tibble: 3 × 2
 #>   Transmission     n
 #>   <fct>        <int>
 #> 1 Automatic       19
@@ -112,7 +114,7 @@ Then, we are able to calculate counts in each category.
 ``` r
 crosstab <- CrossMpgTransmission$count_aggregate(mtcars)
 crosstab
-#> # A tibble: 18 x 3
+#> # A tibble: 18 × 3
 #>    Transmission `Miles per galleon`     n
 #>    <fct>        <fct>               <int>
 #>  1 Automatic    <20.0                  15
@@ -141,7 +143,9 @@ using `convert_tabular()`.
 
 ``` r
 convert_tabular(crosstab, `Miles per galleon` ~ Transmission)
+#> Key: <Miles per galleon>
 #>    Miles per galleon Automatic Manual Total
+#>               <fctr>     <int>  <int> <int>
 #> 1:             <20.0        15      3    18
 #> 2:         20.0-24.9         4      4     8
 #> 3:             25.0+         0      6     6
@@ -175,7 +179,9 @@ convert_tabular(
   `Miles per galleon` ~ Transmission,
   measures = 'n.primary'
 )
+#> Key: <Miles per galleon>
 #>    Miles per galleon Automatic Manual Total
+#>               <fctr>     <int>  <int> <int>
 #> 1:             <20.0        15     NA    18
 #> 2:         20.0-24.9         4      4     8
 #> 3:             25.0+         0      6     6
@@ -218,7 +224,9 @@ convert_tabular(
   `Miles per galleon` ~ Transmission,
   measures = 'n.secondary'
 )
+#> Key: <Miles per galleon>
 #>    Miles per galleon Automatic Manual Total
+#>               <fctr>     <int>  <int> <int>
 #> 1:             <20.0        NA     NA    18
 #> 2:         20.0-24.9        NA     NA     8
 #> 3:             25.0+         0      6     6
