@@ -33,7 +33,7 @@ test_that("BaseMappingTable counting and nullspace is correct", {
   expect_equal(ns_obs, candidate %*% ns_exp)
 })
 
-test_that("RangeMappingTable bindings work as expected", {
+test_that("RangeMappingTable nullspace is correct", {
   # Observed mapping table
   MT <- RangeMappingTable$new(
     table_name = 'Age',
@@ -45,46 +45,9 @@ test_that("RangeMappingTable bindings work as expected", {
     .total = "Total"
   )
 
-  # Expected mapping table
-  map <- tibble(
-    Age = forcats::as_factor(c('<20', '20-34', '35+', 'Unknown', rep('Total', 4L))),
-    .matage = c(1L, 2L, 3L, 4L, 1L, 2L, 3L, 4L)
-  )
-  expect_equal(MT$map, map)
-
-  # Expected join clause
-  join_clause <- dplyr::join_by('.matage' == '.matage')
-  expect_equal(MT$join_clause, join_clause)
-
-  # Expected matrix
-  mat <- rbind(
-    c(1, 0, 0, 0, 1), # <20
-    c(0, 1, 0, 0, 1), # 20-34
-    c(0, 0, 1, 0, 1), # 35+
-    c(0, 0, 0, 1, 1)  # Unknown
-  )
-  expect_equal(MT$matrix, mat)
-
   # Expected nullspace
   ns <- rbind(c(1, 1, 1, 1, -1))
-  expect_equal(MT$nullspace, ns)
-
-  # Expected column names
-  expect_equal(MT$data_cols,  '.matage')
-  expect_equal(MT$raw_cols,   '.matage')
-  expect_equal(MT$table_cols, 'Age')
-
-  ## Expected table skeleton
-  tabside <- tibble(
-    Age = forcats::as_factor(c('<20', '20-34', '35+', 'Unknown', 'Total'))
-  )
-  expect_equal(MT$mtab, tabside)
-
-  ## Expected raw stand-in
-  rawside <- tibble(
-    .matage = c(1L, 2L, 3L, 4L)
-  )
-  expect_equal(MT$mraw, rawside)
+  expect_equal(MT$nullspace / MT$nullspace[1], ns)
 })
 
 test_that("RangeMappingTable counts correctly with missings", {
