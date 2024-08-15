@@ -174,64 +174,6 @@ test_that("RangeMappingTable other/total args work modularly", {
   expect_equal(MT_other_null$count_aggregate(test_with_na), exp_other_null)
   expect_equal(MT_total_null$count_aggregate(test_with_na), exp_total_null)
 
-  ## Multi-map combinations working correctly
-  map1 <- tibble(
-    Map1 = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
-                  labels = c(LETTERS[1:4], 'C+D', 'Total')),
-    raw1 = factor(LETTERS[c(1L:4L, 3L:4L, 1L:4L)])
-  )
-
-  MT1 <- BaseMappingTable$new(map1, 'raw1', 'Map1')
-
-  MM_both_null <- MultiMappingTable$new(MT1, MT_both_null)
-  MM_other_null <- MultiMappingTable$new(MT1, MT_other_null)
-  MM_total_null <- MultiMappingTable$new(MT1, MT_total_null)
-
-  test_matage_raw1 <- data.frame(matage = c(seq(0, 120, 5), rep(NA_real_, 5))) %>%
-    dplyr::cross_join(data.frame(raw1 = c(LETTERS[1:4], "C")))
-
-  base_cohort <- test_matage_raw1 %>%
-    dplyr::mutate(Age = cut(matage, breaks = c(-Inf, 20, 35, Inf), right = FALSE,
-                            labels = c("<20", "20-34", "35+")) %>%
-                    as.character(),
-                  Age = tidyr::replace_na(Age, replace = "Unknown") %>%
-                    forcats::as_factor()) %>%
-    dplyr::count(Map1 = raw1, Age) %>%
-
-    # Add C+D and total for raw1
-    {dplyr::bind_rows(.,
-                      dplyr::filter(., Map1 %in% c("C", "D")) %>%
-                        dplyr::group_by(Age) %>%
-                        dplyr::summarise(n = sum(n)) %>%
-                        dplyr::mutate(Map1 = "C+D"),
-
-                      dplyr::group_by(., Age) %>%
-                        dplyr::summarise(n = sum(n)) %>%
-                        dplyr::mutate(Map1 = "Total")
-    )} %>%
-
-    dplyr::mutate(Map1 = forcats::as_factor(Map1))
-
-  exp_mm_both_null <- base_cohort %>%
-    dplyr::filter(Age != "Unknown") %>%
-    dplyr::mutate(Age = forcats::as_factor(as.character(Age)))
-
-  exp_mm_total_null <- base_cohort
-
-  exp_mm_other_null <- base_cohort %>%
-    dplyr::filter(Age != "Unknown") %>%
-    {dplyr::bind_rows(.,
-                      dplyr::group_by(., Map1) %>%
-                        dplyr::summarise(n = sum(n)) %>%
-                        dplyr::mutate(Age = "Total"))} %>%
-
-    dplyr::mutate(Age = forcats::as_factor(as.character(Age))) %>%
-    dplyr::arrange(Map1, Age)
-
-  expect_equal(MM_both_null$count_aggregate(test_matage_raw1), tibble::as_tibble(exp_mm_both_null))
-  expect_equal(MM_total_null$count_aggregate(test_matage_raw1), tibble::as_tibble(exp_mm_total_null))
-  expect_equal(MM_other_null$count_aggregate(test_matage_raw1), tibble::as_tibble(exp_mm_other_null))
-
 })
 
 test_that('MultiMappingTable bindings work correctly', {
@@ -288,6 +230,33 @@ test_that('MultiMappingTable bindings work correctly', {
     'raw2' == 'raw2'
   ))
   expect_true(all(matrix %*% t(MTM$nullspace) == 0))
+
+  RMT1 <- RangeMappingTable$new("Continuous", "cont",
+                                "Low" = c(-Inf, 5),
+                                "Mid" = c(5, 10),
+                                "High" = c(10, 15),
+                                .other = NULL,
+                                .total = "Total")
+
+  MTM2 <- MultiMappingTable$new(MT2, RMT1)
+
+  map3 <- tibble(raw2 = rep(c("X", "Y"), 5),
+                 cont = rep(1:5, each = 2))
+
+  expect_MTM2 <- tibble(Map2 = factor(c(rep("X", 4), rep("Y", 4), rep("Total", 4)),
+                                      levels = c("X", "Y", 'Total')),
+                        Continuous = factor(rep(c("Low", "Mid", "High", "Total"), 3),
+                                            levels = c("Low", "Mid", "High", "Total")),
+                        n = as.integer(rep(c(4, 1, 0, 5), 3) * rep(c(1, 1, 2), each = 4)))
+
+  expect_MTM2_ns <- matrix(c(1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0,
+                             0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1,
+                             0, 0, -1, 0, 0, 0, 1, 1, 1, -1, 0, 0, 0, 1, 1, 0, -1, 0, 0, 1,
+                             1, 0, 0, -1, 0, -1, -1, 0, 0, 0, -1), ncol = 12)
+
+  expect_equal(MTM2$count_aggregate(map3), expect_MTM2)
+  expect_equal(MTM2$nullspace, expect_MTM2_ns)
+
 })
 
 test_that("BaseMappingTable with empty nullspace evaluates cleanly", {
