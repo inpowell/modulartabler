@@ -45,7 +45,7 @@ count_aggregate <- function(MT, data, ...) {
 #' @md
 #' @importFrom tidyr pivot_longer build_wider_spec pivot_wider_spec unite
 #'   replace_na
-#' @importFrom rlang .env
+#' @importFrom rlang .data .env
 #' @importFrom dplyr mutate select arrange across
 #' @importFrom tidyselect all_of
 #'
@@ -117,10 +117,10 @@ convert_tabular <- function(
 
   if (hasMeasure) {
     spec <- spec |>
-      mutate(.valname = names(measures)[match(.value, measures)]) |>
-      unite('.name', c(all_of(colterms), '.valname'), sep = '_', remove = FALSE) |>
-      select(-.valname) |>
-      arrange(across(all_of(colterms)), match(.value, .env$measures))
+      mutate(.valname = names(.env$measures)[match(.data$.value, .env$measures)]) |>
+      unite('.name', c(all_of(.env$colterms), '.valname'), sep = '_', remove = FALSE) |>
+      select(-.data$.valname) |>
+      arrange(across(all_of(colterms)), match(.data$.value, .env$measures))
   }
 
   visualtab <- pivot_wider_spec(table, spec, id_cols = all_of(rowterms))
