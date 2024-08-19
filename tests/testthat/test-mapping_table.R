@@ -176,6 +176,36 @@ test_that("RangeMappingTable other/total args work modularly", {
 
 })
 
+test_that("non-contiguous ranges are supported in RangeMappingTable", {
+  RMT <- RangeMappingTable$new(
+    'Age', 'age',
+    '<20' = c(0, 20),
+    '35+' = c(35, Inf),
+    .other = 'Other/Unknown',
+    .total = "Total"
+  )
+
+  test <- data.frame(age = c(0:120, NA, NA))
+
+  exp_counts <- dplyr::tibble(
+    Age = forcats::as_factor(c('<20', '35+', 'Other/Unknown', 'Total')),
+    n = c(20L, 86L, 17L, 123L)
+  )
+
+  expect_equal(RMT$count_aggregate(test), exp_counts)
+
+  # These two matrices have the same rowspace if there exists an _invertible_
+  # matrix X such that obs_ns = X %*% exp_ns
+  obs_ns <- RMT$nullspace
+  exp_ns <- rbind(c(1, 1, 1, -1))
+  candidate <- t(qr.solve(t(exp_ns), t(obs_ns)))
+
+  # This matrix is invertible?
+  expect_no_error(solve(candidate))
+  # This matrix satisfies the requirements
+  expect_equal(obs_ns, candidate %*% exp_ns)
+})
+
 test_that('MultiMappingTable bindings work correctly', {
   map1 <- tibble(
     Map1 = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
