@@ -84,10 +84,11 @@ arguments. Each argument should be a length-2 numeric vector showing
 the minimum and maximum range.}
 
 \item{\code{.other}}{The name of the category to use for missing values and
-ranges not included in \code{...}.}
+ranges not included in \code{...}. Set to NULL to exclude missing values
+from the mapping and totals.}
 
 \item{\code{.total}}{The name of the category to use for the total mapping,
-which includes all records.}
+which includes all records. Set to NULL to omit the total category.}
 
 \item{\code{bounds}}{Define which sides of each range should be included. At
 this stage, only semi-open ranges are allowed, with \verb{[)} keeping the

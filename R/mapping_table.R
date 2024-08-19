@@ -239,9 +239,10 @@ RangeMappingTable <- R6::R6Class(
     #'   arguments. Each argument should be a length-2 numeric vector showing
     #'   the minimum and maximum range.
     #' @param .other The name of the category to use for missing values and
-    #'   ranges not included in `...`.
+    #'   ranges not included in `...`. Set to NULL to exclude missing values
+    #'   from the mapping and totals.
     #' @param .total The name of the category to use for the total mapping,
-    #'   which includes all records.
+    #'   which includes all records. Set to NULL to omit the total category.
     #' @param bounds Define which sides of each range should be included. At
     #'   this stage, only semi-open ranges are allowed, with `[)` keeping the
     #'   lower limit but excluding the upper limit, and `(]` keeping the upper
@@ -347,10 +348,20 @@ RangeMappingTable <- R6::R6Class(
       )
       map <- dplyr::select(map, tidyselect::all_of(c(table_name, postmap_data_col)))
 
+      other_map <- if (!is.null(.other)) {
+        rlang::list2(!!table_name := factor(.other),
+                     !!postmap_data_col := length(cuts)) # Other/Unknown
+      } else NULL
+
+      total_map <- if(!is.null(.total)) {
+        rlang::list2(!!table_name := factor(.total),
+                     !!postmap_data_col := seq_len(nrow(uniqueranges) + !is.null(.other))) # Total
+      } else NULL
+
       tmap <- dplyr::bind_rows(
         map,
-        rlang::list2(!!table_name := factor(.other), !!postmap_data_col := length(cuts)), # Other/Unknown
-        rlang::list2(!!table_name := factor(.total), !!postmap_data_col := seq_along(cuts)) # Total
+        other_map,
+        total_map
       )
 
       private$bounds_ <- bounds

@@ -121,6 +121,61 @@ test_that("RangeMappingTable counts correctly with missings", {
 
 })
 
+test_that("RangeMappingTable other/total args work modularly", {
+
+  MT_total_null <- RangeMappingTable$new(
+    table_name = 'Age',
+    data_col = 'matage',
+    "<20" = c(-Inf, 20),
+    "20-34" = c(20, 35),
+    "35+" = c(35, Inf),
+    .other = "Unknown",
+    .total = NULL
+  )
+
+  MT_other_null <- RangeMappingTable$new(
+    table_name = 'Age',
+    data_col = 'matage',
+    "<20" = c(-Inf, 20),
+    "20-34" = c(20, 35),
+    "35+" = c(35, Inf),
+    .other = NULL,
+    .total = "Total"
+  )
+
+  MT_both_null <- RangeMappingTable$new(
+    table_name = 'Age',
+    data_col = 'matage',
+    "<20" = c(-Inf, 20),
+    "20-34" = c(20, 35),
+    "35+" = c(35, Inf),
+    .other = NULL,
+    .total = NULL
+  )
+
+  test_with_na <- data.frame(matage = c(0:120, rep(NA_real_, 5)))
+
+  exp_both_null <- tibble(
+    Age = forcats::as_factor(c('<20', '20-34', '35+')),
+    n = c(20L, 15L, 86L)
+  )
+
+  exp_other_null <- tibble(
+    Age = forcats::as_factor(c('<20', '20-34', '35+', 'Total')),
+    n = c(20L, 15L, 86L, 121L)
+  )
+
+  exp_total_null <- tibble(
+    Age = forcats::as_factor(c('<20', '20-34', '35+', 'Unknown')),
+    n = c(20L, 15L, 86L, 5L)
+  )
+
+  expect_equal(MT_both_null$count_aggregate(test_with_na), exp_both_null)
+  expect_equal(MT_other_null$count_aggregate(test_with_na), exp_other_null)
+  expect_equal(MT_total_null$count_aggregate(test_with_na), exp_total_null)
+
+})
+
 test_that('MultiMappingTable bindings work correctly', {
   map1 <- tibble(
     Map1 = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
@@ -175,6 +230,33 @@ test_that('MultiMappingTable bindings work correctly', {
     'raw2' == 'raw2'
   ))
   expect_true(all(matrix %*% t(MTM$nullspace) == 0))
+
+  RMT1 <- RangeMappingTable$new("Continuous", "cont",
+                                "Low" = c(-Inf, 5),
+                                "Mid" = c(5, 10),
+                                "High" = c(10, 15),
+                                .other = NULL,
+                                .total = "Total")
+
+  MTM2 <- MultiMappingTable$new(MT2, RMT1)
+
+  map3 <- tibble(raw2 = rep(c("X", "Y"), 5),
+                 cont = rep(1:5, each = 2))
+
+  expect_MTM2 <- tibble(Map2 = factor(c(rep("X", 4), rep("Y", 4), rep("Total", 4)),
+                                      levels = c("X", "Y", 'Total')),
+                        Continuous = factor(rep(c("Low", "Mid", "High", "Total"), 3),
+                                            levels = c("Low", "Mid", "High", "Total")),
+                        n = as.integer(rep(c(4, 1, 0, 5), 3) * rep(c(1, 1, 2), each = 4)))
+
+  expect_MTM2_ns <- matrix(c(1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0,
+                             0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1,
+                             0, 0, -1, 0, 0, 0, 1, 1, 1, -1, 0, 0, 0, 1, 1, 0, -1, 0, 0, 1,
+                             1, 0, 0, -1, 0, -1, -1, 0, 0, 0, -1), ncol = 12)
+
+  expect_equal(MTM2$count_aggregate(map3), expect_MTM2)
+  expect_equal(MTM2$nullspace, expect_MTM2_ns)
+
 })
 
 test_that("BaseMappingTable with empty nullspace evaluates cleanly", {
