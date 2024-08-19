@@ -1,21 +1,37 @@
-library(data.table)
-
 test_that("determine_cell_suppression correctly suppresses cells", {
+  withr::local_package('dplyr')
   skip_if_not_installed('ROI.plugin.highs')
 
-  test_tab <- data.table(
+  test_tab <- dplyr::tibble(
     Region = gl(3, 3, 9, labels = LETTERS[1:3]),
     Activity = gl(3, 1, 9, labels = c('I', 'II', 'III')),
     n = c(20, 50, 10,  8, 19, 22,  17, 32, 12),
     suppress = c(FALSE, FALSE, FALSE,  TRUE, FALSE, TRUE,  TRUE, FALSE, TRUE)
   )
-  test_rtot <- test_tab[, .(Region = 'Total', n = sum(n), suppress = FALSE),
-                        by = .(Activity)]
-  test_atot <- test_tab[, .(Activity = 'Total', n = sum(n), suppress = FALSE),
-                        by = .(Region)]
-  test_tot <- test_tab[, .(Region = 'Total', Activity = 'Total', n = sum(n), suppress = FALSE)]
 
-  test <- rbind(test_tab, test_rtot, test_atot, test_tot)
+  test_rtot <- summarise(
+    test_tab,
+    Region = 'Total',
+    n = sum(n),
+    suppress = FALSE,
+    .by = Activity
+  )
+  test_atot <- summarise(
+    test_tab,
+    Activity = 'Total',
+    n = sum(n),
+    suppress = FALSE,
+    .by = Region
+  )
+  test_tot <- summarise(
+    test_tab,
+    Activity = 'Total',
+    Region = 'Total',
+    n = sum(n),
+    suppress = FALSE
+  )
+
+  test <- bind_rows(test_tab, test_rtot, test_atot, test_tot)
 
   nullspace <- rbind(
     c(1, 0, 0,  1, 0, 0,  1, 0, 0,  -1,  0,  0,   0,  0,  0,   0),

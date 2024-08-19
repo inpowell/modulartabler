@@ -143,15 +143,15 @@ using `convert_tabular()`.
 
 ``` r
 convert_tabular(crosstab, `Miles per galleon` ~ Transmission)
-#> Key: <Miles per galleon>
-#>    Miles per galleon Automatic Manual Total
-#>               <fctr>     <int>  <int> <int>
-#> 1:             <20.0        15      3    18
-#> 2:         20.0-24.9         4      4     8
-#> 3:             25.0+         0      6     6
-#> 4:             20.0+         4     10    14
-#> 5:           Unknown         0      0     0
-#> 6:             Total        19     13    32
+#> # A tibble: 6 × 4
+#>   `Miles per galleon` Automatic Manual Total
+#>   <fct>                   <int>  <int> <int>
+#> 1 <20.0                      15      3    18
+#> 2 20.0-24.9                   4      4     8
+#> 3 25.0+                       0      6     6
+#> 4 20.0+                       4     10    14
+#> 5 Unknown                     0      0     0
+#> 6 Total                      19     13    32
 ```
 
 This shows all the information we need, including that manual cars tend
@@ -179,15 +179,15 @@ convert_tabular(
   `Miles per galleon` ~ Transmission,
   measures = 'n.primary'
 )
-#> Key: <Miles per galleon>
-#>    Miles per galleon Automatic Manual Total
-#>               <fctr>     <int>  <int> <int>
-#> 1:             <20.0        15     NA    18
-#> 2:         20.0-24.9         4      4     8
-#> 3:             25.0+         0      6     6
-#> 4:             20.0+         4     10    14
-#> 5:           Unknown         0      0     0
-#> 6:             Total        19     13    32
+#> # A tibble: 6 × 4
+#>   `Miles per galleon` Automatic Manual Total
+#>   <fct>                   <int>  <int> <int>
+#> 1 <20.0                      15     NA    18
+#> 2 20.0-24.9                   4      4     8
+#> 3 25.0+                       0      6     6
+#> 4 20.0+                       4     10    14
+#> 5 Unknown                     0      0     0
+#> 6 Total                      19     13    32
 ```
 
 So, we need to conduct secondary suppression. The relationships of a
@@ -224,15 +224,15 @@ convert_tabular(
   `Miles per galleon` ~ Transmission,
   measures = 'n.secondary'
 )
-#> Key: <Miles per galleon>
-#>    Miles per galleon Automatic Manual Total
-#>               <fctr>     <int>  <int> <int>
-#> 1:             <20.0        NA     NA    18
-#> 2:         20.0-24.9        NA     NA     8
-#> 3:             25.0+         0      6     6
-#> 4:             20.0+        NA     NA    14
-#> 5:           Unknown         0      0     0
-#> 6:             Total        19     13    32
+#> # A tibble: 6 × 4
+#>   `Miles per galleon` Automatic Manual Total
+#>   <fct>                   <int>  <int> <int>
+#> 1 <20.0                      NA     NA    18
+#> 2 20.0-24.9                  NA     NA     8
+#> 3 25.0+                       0      6     6
+#> 4 20.0+                      NA     NA    14
+#> 5 Unknown                     0      0     0
+#> 6 Total                      19     13    32
 ```
 
 Unfortunately, we have also lost a lot of information in our table. This

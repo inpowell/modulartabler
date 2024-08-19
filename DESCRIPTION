@@ -18,17 +18,17 @@ Encoding: UTF-8
 LazyData: true
 Suggests: 
     testthat,
-    ROI.plugin.highs
+    ROI.plugin.highs,
+    withr
 Imports: 
     R6,
     purrr,
     dplyr (>= 1.1.2),
     tidyselect,
     tibble,
-    data.table,
     tidyr (>= 1.3.0),
     forcats (>= 1.0.0),
     ROI (>= 1.0.1),
     cli (>= 3.6.1),
     rlang (>= 1.1.1)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2

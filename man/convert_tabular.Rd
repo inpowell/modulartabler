@@ -8,9 +8,7 @@ convert_tabular(
   table,
   formula,
   measures = c(No. = "n"),
-  ...,
-  conversion = NULL,
-  value_override
+  measurename = ".Measure"
 )
 }
 \arguments{
@@ -20,30 +18,52 @@ various measures.}
 
 \item{formula}{A formula describing the visual structure of the table. The
 LHS of the formula corresponds to rows, and the RHS corresponds to columns.
-The \code{.Measure} variable can be used where there are multiple measures.
-Passed to \code{data.table::melt}.}
+The \code{.Measure} variable (or alternative in \code{measurename}) can be used where
+there are multiple measures.}
 
 \item{measures}{Columns that correspond to measures wanted in the output
 table. The names of the vector will be used as "pretty" names in the output
 table.}
 
-\item{...}{Passed to \code{data.table::melt}.}
-
-\item{conversion}{(Optional.) A function to convert all measures to a common
-type, such as \code{as.numeric} or \code{as.character}.}
-
-\item{value_override}{(Optional.) If a supplementary table is needed that
-does not come from the measure columns (e.g. whether a cell needs to be
-suppressed), this argument overrides the value used when converting to
-tabular format.}
+\item{measurename}{The placeholder name in \code{formula} for distinguishing
+measures, where multiple measures are given. This name is also used as the
+descriptor of measures if used as a row group.}
 }
 \value{
-\code{convert_tabular} returns a \code{data.table} in visual tabular form.
-Column names are determined by \code{data.table::melt}, which defaults to the
-various dimensions separated by an underscore.
+\code{convert_tabular} returns a tibble in visual tabular form.
 }
 \description{
 \code{convert_tabular} takes a table in semi-long format (where each row
 corresponds to a cell, but each cell can have multiple measures), and returns
 it in tabular format.
+}
+\examples{
+wbsumm <- dplyr::summarise(
+  warpbreaks,
+  mean = mean(breaks), sd = sd(breaks),
+  .by = c(wool, tension)
+)
+wbsumm
+
+# Show wool type in rows, tension and mean/std dev in columns
+convert_tabular(
+  wbsumm,
+  wool ~ tension + .Measure,
+  measures = c(Mean = 'mean', 'Std. Dev.' = 'sd')
+)
+
+# Show measure as largest row group with header Statistic
+convert_tabular(
+  wbsumm,
+  Statistic + wool ~ tension,
+  measures = c(Mean = 'mean', 'Std. Dev.' = 'sd'),
+  measurename = 'Statistic'
+)
+
+# Just show mean
+convert_tabular(
+  wbsumm,
+  tension ~ wool,
+  measures = 'mean'
+)
 }
