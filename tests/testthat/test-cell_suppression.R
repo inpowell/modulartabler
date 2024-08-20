@@ -51,6 +51,16 @@ test_that("determine_cell_suppression correctly suppresses cells", {
   testthat::expect_equal(soln, test$suppress, check.attributes = FALSE)
 })
 
+test_that("suppress_secondary deals with an empty nullspace (#9)", {
+  data <- seq(0, 10, by = 2)
+  suppress <- c(FALSE, TRUE, TRUE, FALSE, FALSE, FALSE)
+  nullspace <- matrix(NA_real_, nrow = 0, ncol = 6)
+  expect_equal(
+    suppress_secondary(data, suppress, nullspace),
+    suppress
+  )
+})
+
 test_that("suppress_secondary aborts if bounds are too tight", {
   skip_if_not_installed('ROI.plugin.highs')
 
