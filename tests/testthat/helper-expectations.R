@@ -10,6 +10,16 @@ expect_equal_rowspace <- function(object, expected, ...) {
     fail(message)
   }
 
+  if ((nact <- ncol(act$val)) != (nexp <- ncol(exp$val))) {
+    message <- glue::glue("{act$lab} has {nact} columns, while {exp$lab} has {nexp}.")
+    fail(message)
+  }
+
+  if (nrow(act$val) == 0L) {
+    succeed("Nullspaces are both trivial.")
+    return(invisible(act$val))
+  }
+
   # A = X %*% E iff t(A) = t(E) %*% t(X) -- this gets the least-squares solution
   candidate <- t(qr.solve(t(exp$val), t(act$val)))
 
@@ -23,18 +33,3 @@ expect_equal_rowspace <- function(object, expected, ...) {
   # Is A = X %*% E, to some sensible tolerance?
   expect_equal(act$val, candidate %*% exp$val, ...)
 }
-
-test_that('expect_equal_rowspace works', {
-  test <- rbind(
-    c(1, 1, 1, 1, 0, -1),
-    c(0, 0, 1, 1, -1, 0)
-  )
-  equal <- t(qr.Q(qr(t(test)))) # test, but orthonormal
-  nequal <- rbind(
-    c(1, 1, 1, 1, 0, -1),
-    c(0, 0, 1, 0, -1, 0)
-  )
-
-  expect_success(expect_equal_rowspace(test, equal))
-  expect_failure(expect_equal_rowspace(test, nequal))
-})

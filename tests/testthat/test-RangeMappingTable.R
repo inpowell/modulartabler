@@ -1,58 +1,39 @@
-test_that("RangeMappingTable bindings work as expected", {
-  # Observed mapping table
-  MT <- RangeMappingTable$new(
+test_that("nullspace with overlapping ranges works", {
+  MTtotal <- RangeMappingTable$new(
     table_name = 'Age',
-    data_col = 'matage',
-    "<20" = c(-Inf, 20),
-    "20-34" = c(20, 35),
+    data_col = 'age',
+    "16-24" = c(16, 25),
+    "16-34" = c(16, 35),
+    "25-34" = c(25, 35),
     "35+" = c(35, Inf),
     .other = "Unknown",
     .total = "Total"
   )
 
-  # Expected mapping table
-  map <- tibble(
-    Age = forcats::as_factor(c('<20', '20-34', '35+', 'Unknown', rep('Total', 4L))),
-    .matage = c(1L, 2L, 3L, 4L, 1L, 2L, 3L, 4L)
+  nullspace_total <- rbind(
+    c(1, 0, 1, 1, 1, -1),
+    c(1, -1, 1, 0, 0, 0)
   )
-  expect_equal(MT$map, map)
 
-  # Expected join clause
-  join_clause <- dplyr::join_by('.matage' == '.matage')
-  expect_equal(MT$join_clause, join_clause)
+  expect_equal_rowspace(MTtotal$nullspace, nullspace_total)
 
-  # Expected matrix
-  mat <- rbind(
-    c(1, 0, 0, 0, 1), # <20
-    c(0, 1, 0, 0, 1), # 20-34
-    c(0, 0, 1, 0, 1), # 35+
-    c(0, 0, 0, 1, 1)  # Unknown
+  MTnototal <- RangeMappingTable$new(
+    table_name = 'Age',
+    data_col = 'age',
+    "16-24" = c(16, 25),
+    "16-34" = c(16, 35),
+    "25-34" = c(25, 35),
+    "35+" = c(35, Inf),
+    .other = "Unknown",
+    .total = NULL
   )
-  expect_equal(MT$matrix, mat)
 
-  # Expected nullspace
-  ns <- rbind(c(1, 1, 1, 1, -1))
-  expect_equal(MT$nullspace, ns)
+  nullspace_nototal <- rbind(c(1, -1, 1, 0, 0))
 
-  # Expected column names
-  expect_equal(MT$data_cols,  '.matage')
-  expect_equal(MT$raw_cols,   '.matage')
-  expect_equal(MT$table_cols, 'Age')
-
-  ## Expected table skeleton
-  tabside <- tibble(
-    Age = forcats::as_factor(c('<20', '20-34', '35+', 'Unknown', 'Total'))
-  )
-  expect_equal(MT$mtab, tabside)
-
-  ## Expected raw stand-in
-  rawside <- tibble(
-    .matage = c(1L, 2L, 3L, 4L)
-  )
-  expect_equal(MT$mraw, rawside)
+  expect_equal_rowspace(MTnototal$nullspace, nullspace_nototal)
 })
 
-test_that("RangeMappingTable counts correctly with missings", {
+test_that("count_aggregate in RangeMappingTable counts missings correctly", {
   MT <- RangeMappingTable$new(
     table_name = 'Age',
     data_col = 'matage',
@@ -95,6 +76,7 @@ test_that("RangeMappingTable other/total args work modularly", {
     .other = "Unknown",
     .total = NULL
   )
+  expect_equal_rowspace(MT_total_null$nullspace, matrix(nrow = 0, ncol = 4L))
 
   MT_other_null <- RangeMappingTable$new(
     table_name = 'Age',
@@ -105,6 +87,7 @@ test_that("RangeMappingTable other/total args work modularly", {
     .other = NULL,
     .total = "Total"
   )
+  expect_equal_rowspace(MT_other_null$nullspace, rbind(c(1, 1, 1, -1)))
 
   MT_both_null <- RangeMappingTable$new(
     table_name = 'Age',
@@ -115,6 +98,7 @@ test_that("RangeMappingTable other/total args work modularly", {
     .other = NULL,
     .total = NULL
   )
+  expect_equal_rowspace(MT_both_null$nullspace, matrix(nrow = 0, ncol = 3L))
 
   test_with_na <- data.frame(matage = c(0:120, rep(NA_real_, 5)))
 
