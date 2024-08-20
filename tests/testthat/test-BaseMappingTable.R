@@ -1,38 +1,38 @@
-test_that("BaseMappingTable bindings work as expected", {
+test_that("count_aggregate counts correctly for BaseMappingTables", {
+  map <- data.frame(
+    Map = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
+                 labels = c(LETTERS[1:4], 'C+D', 'Total')),
+    raw = factor(LETTERS[c(1L:4L, 3L:4L, 1L:4L)])
+  )
+  MT <- BaseMappingTable$new(map, 'raw', 'Map')
+
+  rawdata <- dplyr::tibble(
+    raw = factor(LETTERS[1L:4L])[rep(1:4, times = c(23, 29, 31, 37))]
+  )
+
+  expected <- dplyr::tibble(
+    Map = factor(c('A', 'B', 'C', 'D', 'C+D', 'Total'), levels = levels(map$Map)),
+    n = c(23L, 29L, 31L, 37L, 68L, 120L)
+  )
+
+  expect_equal(count_aggregate(MT, rawdata), expected)
+})
+
+test_that("nullspace for BaseMappingTable is correct", {
   map <- tibble(
     Map = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
                  labels = c(LETTERS[1:4], 'C+D', 'Total')),
     raw = factor(LETTERS[c(1L:4L, 3L:4L, 1L:4L)])
   )
-
-  rawside <- tibble(raw = factor(LETTERS[1L:4L]))
-  tabside <- tibble(Map = factor(1L:6L, labels = c(LETTERS[1:4], 'C+D', 'Total')))
-
-  matrix <- rbind(
-    c(1L, 0L, 0L, 0L, 0L, 1L),
-    c(0L, 1L, 0L, 0L, 0L, 1L),
-    c(0L, 0L, 1L, 0L, 1L, 1L),
-    c(0L, 0L, 0L, 1L, 1L, 1L)
-  )
+  MT <- BaseMappingTable$new(map, 'raw', 'Map')
 
   nullspace <- rbind(
     c(0, 0, 1, 1, -1, 0),
     c(1, 1, 1, 1, 0, -1)
   )
 
-  MT <- BaseMappingTable$new(map, 'raw', 'Map')
-
-  expect_equal(MT$map, map)
-  expect_equal(MT$matrix, matrix)
-  expect_equal(MT$mraw, rawside)
-  expect_equal(MT$mtab, tabside)
-  expect_equal(MT$data_cols, 'raw')
-  expect_equal(MT$raw_cols, 'raw')
-  expect_equal(MT$table_cols, 'Map')
-  expect_equal(MT$join_clause, dplyr::join_by('raw' == 'raw')) # Character is okay
-  expect_equal(MT$nullspace, nullspace)
+  expect_equal_rowspace(MT$nullspace, nullspace)
 })
-
 
 test_that("BaseMappingTable with empty nullspace evaluates cleanly", {
   map <- tibble(

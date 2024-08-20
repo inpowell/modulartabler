@@ -19,7 +19,8 @@ LazyData: true
 Suggests: 
     testthat,
     ROI.plugin.highs,
-    withr
+    withr,
+    glue
 Imports: 
     R6,
     purrr,
