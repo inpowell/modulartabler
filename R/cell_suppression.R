@@ -72,6 +72,8 @@ suppress_secondary <- function(
     ...,
     solver = 'highs',
     max_iter = 100L) {
+  if (nrow(nullspace) == 0) return(suppress)
+
   if (!ROI::ROI_require_solver(solver, warn = -1L)) {
     cli::cli_abort(c(
       "Requested {.pkg ROI} solver {.val {solver}} but it is not available.",
