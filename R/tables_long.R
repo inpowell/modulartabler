@@ -117,10 +117,10 @@ convert_tabular <- function(
 
   if (hasMeasure) {
     spec <- spec |>
-      mutate(.valname = names(.env$measures)[match(.data$.value, .env$measures)]) |>
+      mutate(.valname = names(.env$measures)[match(.value, .env$measures)]) |>
       unite('.name', c(all_of(.env$colterms), '.valname'), sep = '_', remove = FALSE) |>
-      select(-.data$.valname) |>
-      arrange(across(all_of(colterms)), match(.data$.value, .env$measures))
+      select(-.valname) |>
+      arrange(across(all_of(colterms)), match(.value, .env$measures))
   }
 
   visualtab <- pivot_wider_spec(table, spec, id_cols = all_of(rowterms))
