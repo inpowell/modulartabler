@@ -119,7 +119,7 @@ convert_tabular <- function(
     spec <- spec |>
       mutate(.valname = names(.env$measures)[match(.data$.value, .env$measures)]) |>
       unite('.name', c(all_of(.env$colterms), '.valname'), sep = '_', remove = FALSE) |>
-      select(-.data$.valname) |>
+      select(-'.valname') |>
       arrange(across(all_of(colterms)), match(.data$.value, .env$measures))
   }
 

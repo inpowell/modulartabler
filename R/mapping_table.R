@@ -343,32 +343,31 @@ RangeMappingTable <- R6::R6Class(
           unique.left, unique.right,
           range.1, range.2
         )),
-        relationship = 'many-to-many',
-        unmatched = 'error'
+        relationship = 'many-to-many'
       )
       map <- dplyr::select(map, tidyselect::all_of(c(table_name, postmap_data_col)))
 
-      other_map <- if (!is.null(.other)) {
-        rlang::list2(!!table_name := factor(.other),
-                     !!postmap_data_col := length(cuts)) # Other/Unknown
-      } else NULL
+      # Other includes all length(cuts) values that are not in the map already
+      if (!is.null(.other)) {
+        map <- dplyr::bind_rows(map, rlang::list2(
+          !!table_name := factor(.other),
+          !!postmap_data_col := setdiff(seq_along(cuts), map[[postmap_data_col]])
+        ))
+      }
 
-      total_map <- if(!is.null(.total)) {
-        rlang::list2(!!table_name := factor(.total),
-                     !!postmap_data_col := seq_len(nrow(uniqueranges) + !is.null(.other))) # Total
-      } else NULL
-
-      tmap <- dplyr::bind_rows(
-        map,
-        other_map,
-        total_map
-      )
+      # Total includes all values that are in the map
+      if (!is.null(.total)) {
+        map <- dplyr::bind_rows(map, rlang::list2(
+          !!table_name := factor(.total),
+          !!postmap_data_col := unique(map[[postmap_data_col]])
+        ))
+      }
 
       private$bounds_ <- bounds
       private$cuts_ <- cuts
       private$premap_data_col_ <- data_col
       # Call to BaseMappingTable
-      super$initialize(tmap, raw_cols = postmap_data_col, table_cols = table_name)
+      super$initialize(map, raw_cols = postmap_data_col, table_cols = table_name)
     },
 
     preprocess = function(data) {
