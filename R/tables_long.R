@@ -12,7 +12,6 @@
 #'   column `n` for the counts.
 #'
 #' @export
-#' @md
 count_aggregate <- function(MT, data, ...) {
   if (!inherits(MT, 'MappingTable')) {
     cli::cli_abort("{.var MT} must be a {.cls MappingTable} object in {.fun count_aggregate}.")
@@ -42,7 +41,6 @@ count_aggregate <- function(MT, data, ...) {
 #'
 #' @return `convert_tabular` returns a tibble in visual tabular form.
 #' @export
-#' @md
 #' @importFrom tidyr pivot_longer build_wider_spec pivot_wider_spec unite
 #'   replace_na
 #' @importFrom rlang .data .env

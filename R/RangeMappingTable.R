@@ -4,7 +4,6 @@
 #' count table, mapping a continuous variable to ranges.
 #'
 #' @export
-#' @md
 RangeMappingTable <- R6::R6Class(
   'RangeMappingTable', inherit = BaseMappingTable,
 
@@ -29,7 +28,6 @@ RangeMappingTable <- R6::R6Class(
     #'   limit but excluding the lower limit.
     #'
     #' @return A new `MappingTable` object.
-    #' @md
     #'
     #' @examples
     #' # Maps the `age` column into `Age` categories of <20, 20-34, and 35+,

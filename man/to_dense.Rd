@@ -9,16 +9,16 @@ to_dense(M, zapsmall = TRUE, digits = ceiling(-log10(.Machine$double.eps)/2))
 \arguments{
 \item{M}{matrix to convert to dense form}
 
-\item{zapsmall}{Whether to zap small values to zero; see `?base::zapsmall`}
+\item{zapsmall}{Whether to zap small values to zero; see \code{?base::zapsmall}}
 
 \item{digits}{Number of digits to zap to zero}
 }
 \value{
-`to_dense` returns a matrix with three columns. The first column is
-  the row number, the second is the column number, and the third is the
-  value.
+\code{to_dense} returns a matrix with three columns. The first column is
+the row number, the second is the column number, and the third is the
+value.
 }
 \description{
-This function is to facilitate work with `lpSolve::lp`, particularly with the
-`dense.const` argument.
+This function is to facilitate work with \code{lpSolve::lp}, particularly with the
+\code{dense.const} argument.
 }

@@ -5,7 +5,6 @@
 #' the input tables.
 #'
 #' @export
-#' @md
 #' @importFrom purrr map reduce
 MultiMappingTable <- R6::R6Class(
   'MultiMappingTable', inherit = MappingTable,

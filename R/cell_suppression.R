@@ -44,10 +44,8 @@
 #' @references Fischetti M, Salazar JJ. Solving the cell suppression problem on
 #'   tabular data with linear constraints. Management Science.
 #'   2001;47(7):1008-1027.
-#'   \url{https://www.proquest.com/scholarly-journals/solving-cell-suppression-problem-on-tabular-data/docview/213175964/se-2?accountid=147118}
+#'   <https://www.proquest.com/scholarly-journals/solving-cell-suppression-problem-on-tabular-data/docview/213175964/se-2?accountid=147118>
 #'
-#'
-#' @md
 #' @export
 determine_cell_suppression <- function(
     N,

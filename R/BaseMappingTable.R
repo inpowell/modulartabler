@@ -19,7 +19,6 @@ MappingTable <- R6::R6Class(
     #' @param nlines (Ignored.) Maximum number of mappings to print.
     #' @param nobjs (Ignored.) Maximum number of objects to print per line.
     #' @param ... Passed to the `print` method for `tibble`
-    #' @md
     print = function(nlines = 10L, nobjs = 2L, ...) {
       cat('Mapping table:\n')
       cat('  Map:\n')
@@ -32,7 +31,6 @@ MappingTable <- R6::R6Class(
     #'   categories.
     #' @param data The raw dataset to count and aggregate.
     #' @param ... Passed to [dplyr::inner_join]
-    #' @md
     count_aggregate = function(data, ...) {
       data <- self$preprocess(data)
       grpraw <- dplyr::group_by(
@@ -58,7 +56,6 @@ MappingTable <- R6::R6Class(
     #' @description Pre-process data for counting and aggregating
     #'
     #' @param data The dataset to prepare for counting and aggregating.
-    #' @md
     preprocess = function(data) {
       data # Default: no modification
     }
@@ -127,7 +124,6 @@ MappingTable <- R6::R6Class(
 #' count table.
 #'
 #' @export
-#' @md
 BaseMappingTable <- R6::R6Class(
   'BaseMappingTable', inherit = MappingTable,
   public = list(
@@ -145,7 +141,6 @@ BaseMappingTable <- R6::R6Class(
     #'   necessary if `raw_cols` does not match the names in the raw data.
     #'
     #' @return A new `MappingTable` object.
-    #' @md
     initialize = function(map, raw_cols, table_cols, data_cols = raw_cols) {
       # if (!identical(length(raw_cols), length(table_cols)))
       #   stop('raw_cols and table_cols must have the same length')
