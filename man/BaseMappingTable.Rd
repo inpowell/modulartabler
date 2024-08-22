@@ -12,14 +12,52 @@ R6 class representing a mapping table for a single dimension.
 This mapping table class defines the structure for a single dimension of a
 count table.
 }
+\examples{
+SpeciesMap <- local({
+  tab <- data.frame(
+    Species = factor(
+      c(1L, 2L, 3L, rep(4L, times = 3L)),
+      labels = c("I. setosa", "I. versicolor", "I. virginica", "Total")
+    ),
+    .rawspecies = rep(c("setosa", "versicolor", "virginica"), times = 2L)
+  )
+  BaseMappingTable$new(
+    tab,
+    raw_cols = ".rawspecies",
+    table_cols = "Species",
+    data_cols = "Species"
+  )
+})
+
+SpeciesMap$count_aggregate(iris)
+}
 \section{Super class}{
 \code{\link[modulartabler:MappingTable]{modulartabler::MappingTable}} -> \code{BaseMappingTable}
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
+\item{\code{map}}{The data frame used for mapping.}
+
 \item{\code{mraw}}{The raw-side data that correspond to rows of the matrix
 representation.}
+
+\item{\code{mtab}}{The table-side data that corresponds to columns of the matrix
+representation.}
+
+\item{\code{matrix}}{A matrix representation of the mapping table that indicates
+which raw values (in rows) are mapped to table cells (in columns).}
+
+\item{\code{raw_cols}}{The names of columns in \code{map} that are joined with
+preprocessed data.}
+
+\item{\code{data_cols}}{The names of columns preprocessed data that are joined
+with \code{map}.}
+
+\item{\code{table_cols}}{The names of columns in the output dataset.}
+
+\item{\code{join_clause}}{A \code{\link[dplyr:join_by]{dplyr::join_by()}} object that describes how to join
+the data (in \code{x}) to the mapping table (in \code{y}).}
 }
 \if{html}{\out{</div>}}
 }

@@ -7,19 +7,21 @@
 #' `BaseMappingTable` or `MultiMappingTable`.
 #'
 #' @export
+#' @examples
+#' try(MappingTable$new()) # Fails -- use a subclass instead
+#'
 MappingTable <- R6::R6Class(
   'MappingTable',
   public = list(
     #' @description `MappingTable$new()` will fail with an error.
     #' @param ... Ignored.
-    initialize = function(...)
-      stop("MappingTable is virtual and must not be instantiated."),
+    initialize = function(...) {
+      stop("MappingTable is virtual and must not be instantiated.")
+    },
 
     #' @description Print a mapping table and return it invisibly
-    #' @param nlines (Ignored.) Maximum number of mappings to print.
-    #' @param nobjs (Ignored.) Maximum number of objects to print per line.
     #' @param ... Passed to the `print` method for `tibble`
-    print = function(nlines = 10L, nobjs = 2L, ...) {
+    print = function(...) {
       cat('Mapping table:\n')
       cat('  Map:\n')
       print(self$map, ...)
@@ -62,31 +64,31 @@ MappingTable <- R6::R6Class(
   ),
 
   active = list(
-    #' @field map The data frame used for mapping
-    map = function() stop('map has not been implemented for MappingTable'),
+    #' @field map The data frame used for mapping.
+    map = function() {stop('map has not been implemented for MappingTable')},
 
     #' @field mtab The table-side data that corresponds to columns of the matrix
     #'   representation.
-    mtab = function() stop('mtab has not been implemented for MappingTable'),
+    mtab = function() {stop('mtab has not been implemented for MappingTable')},
 
     #' @field matrix A matrix representation of the mapping table that indicates
     #'   which raw values (in rows) are mapped to table cells (in columns).
-    matrix = function() stop('matrix has not been implemented for MappingTable'),
+    matrix = function() {stop('matrix has not been implemented for MappingTable')},
 
-    #' @field raw_cols The names of columns corresponding to raw data in `map`
-    raw_cols = function() stop('raw_cols has not been implemented for MappingTable'),
+    #' @field raw_cols The names of columns in `map` that are joined with
+    #'   preprocessed data.
+    raw_cols = function() {stop('raw_cols has not been implemented for MappingTable')},
 
-    #' @field data_cols The names of columns in the raw data that correspond to
-    #'   `raw_cols`
-    data_cols = function() stop('data_cols has not been implemented for MappingTable'),
+    #' @field data_cols The names of columns preprocessed data that are joined
+    #'   with `map`.
+    data_cols = function() {stop('data_cols has not been implemented for MappingTable')},
 
-    #' @field table_cols The names of columns corresponding to display table in
-    #'   `map`
-    table_cols = function() stop('table_cols has not been implemented for MappingTable'),
+    #' @field table_cols The names of columns in the output dataset.
+    table_cols = function() {stop('table_cols has not been implemented for MappingTable')},
 
     #' @field join_clause A [dplyr::join_by()] object that describes how to join
     #'   the data (in `x`) to the mapping table (in `y`).
-    join_clause = function() stop('join_clause has not been implemented for MappingTable'),
+    join_clause = function() {stop('join_clause has not been implemented for MappingTable')},
 
     #' @field nullspace A matrix with rowspace equal to the kernel of the matrix
     #'   representation.
@@ -124,6 +126,28 @@ MappingTable <- R6::R6Class(
 #' count table.
 #'
 #' @export
+#' @examples
+#' # Create a mapping table that maps iris species to their abbreviated binomial
+#' # nomenclature, and includes a total.
+#' species_table <- data.frame(
+#'   Species = factor(
+#'     c(1L, 2L, 3L, rep(4L, times = 3L)),
+#'     labels = c("I. setosa", "I. versicolor", "I. virginica", "Total")
+#'   ),
+#'   .rawspecies = factor(rep(c("setosa", "versicolor", "virginica"), times = 2L))
+#' )
+#' species_table
+#'
+#' SpeciesMap <- BaseMappingTable$new(
+#'   tab,
+#'   raw_cols = ".rawspecies",
+#'   table_cols = "Species",
+#'   data_cols = "Species"
+#' )
+#' SpeciesMap
+#'
+#' SpeciesMap$count_aggregate(iris)
+#' SpeciesMap$nullspace # This matrix is useful for cell suppression
 BaseMappingTable <- R6::R6Class(
   'BaseMappingTable', inherit = MappingTable,
   public = list(
@@ -165,7 +189,8 @@ BaseMappingTable <- R6::R6Class(
   ),
 
   active = list(
-    map = function() private$.map,
+    #' @field map The data frame used for mapping.
+    map = function() {private$.map},
 
     #' @field mraw The raw-side data that correspond to rows of the matrix
     #'   representation.
@@ -175,16 +200,33 @@ BaseMappingTable <- R6::R6Class(
         dplyr::distinct() |>
         dplyr::arrange(dplyr::across(tidyselect::all_of(private$.rawside_cols)))
     },
+
+    #' @field mtab The table-side data that corresponds to columns of the matrix
+    #'   representation.
     mtab = function(){
       private$.map |>
         dplyr::select(tidyselect::all_of(private$.tabside_cols)) |>
         dplyr::distinct() |>
         dplyr::arrange(dplyr::across(tidyselect::all_of(private$.tabside_cols)))
     },
-    matrix = function() private$to_matrix(),
-    raw_cols = function() private$.rawside_cols,
-    data_cols = function() private$.data_cols,
-    table_cols = function() private$.tabside_cols,
+
+    #' @field matrix A matrix representation of the mapping table that indicates
+    #'   which raw values (in rows) are mapped to table cells (in columns).
+    matrix = function() {private$to_matrix()},
+
+    #' @field raw_cols The names of columns in `map` that are joined with
+    #'   preprocessed data.
+    raw_cols = function() {private$.rawside_cols},
+
+    #' @field data_cols The names of columns preprocessed data that are joined
+    #'   with `map`.
+    data_cols = function() {private$.data_cols},
+
+    #' @field table_cols The names of columns in the output dataset.
+    table_cols = function() {private$.tabside_cols},
+
+    #' @field join_clause A [dplyr::join_by()] object that describes how to join
+    #'   the data (in `x`) to the mapping table (in `y`).
     join_clause = function() {
       exprs <- purrr::map2(private$.data_cols, private$.rawside_cols,
                            \(x, y) call('==', x, y))
