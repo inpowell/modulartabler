@@ -130,10 +130,22 @@ AgeMap$count_aggregate(refdata)
 \if{html}{\out{<a id="method-RangeMappingTable-preprocess"></a>}}
 \if{latex}{\out{\hypertarget{method-RangeMappingTable-preprocess}{}}}
 \subsection{Method \code{preprocess()}}{
+Pre-process a dataset for counting and aggregating. In
+RangeMappingTables, this function creates a new column which
+discretises the continuous data column to integer codes. Values outside
+the requested range (including missing values) are coded as the highest
+integer in the list.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RangeMappingTable$preprocess(data)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{The dataset to prepare for counting and aggregating.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RangeMappingTable-clone"></a>}}

@@ -148,6 +148,13 @@ RangeMappingTable <- R6::R6Class(
       super$initialize(map, raw_cols = postmap_data_col, table_cols = table_name)
     },
 
+    #' @description Pre-process a dataset for counting and aggregating. In
+    #'   RangeMappingTables, this function creates a new column which
+    #'   discretises the continuous data column to integer codes. Values outside
+    #'   the requested range (including missing values) are coded as the highest
+    #'   integer in the list.
+    #'
+    #' @param data The dataset to prepare for counting and aggregating.
     preprocess = function(data) {
       rawsym <- rlang::sym(private$premap_data_col_)
       mapsym <- rlang::sym(super$data_cols)
