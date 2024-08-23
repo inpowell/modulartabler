@@ -26,7 +26,7 @@ species_table <- data.frame(
 species_table
 
 SpeciesMap <- BaseMappingTable$new(
-  tab,
+  species_table,
   raw_cols = ".rawspecies",
   table_cols = "Species",
   data_cols = "Species"
@@ -40,6 +40,53 @@ SpeciesMap$count_aggregate(iris)
 # I. setosa + I. versicolor + I. virginica - Total = 0. This is
 # necessary for preventing back-calculation in cell suppression.
 SpeciesMap$nullspace
+# Sometimes we need a more complicated table, which often requires some fiddly
+# data manipulation.
+library(dplyr)
+
+# In AER::Fertility, these are recorded as factors - we will recode later
+ethtab <- expand.grid(
+  afam = c(TRUE, FALSE),
+  hispanic = c(TRUE, FALSE),
+  other = c(TRUE, FALSE)
+)
+
+# Build the output categories. We code as factor so it sorts properly in the
+# output
+ethtab <- ethtab |>
+  mutate(Ethnicity = as.factor(case_when(
+    afam & !hispanic & !other ~ 'African-American only',
+    !afam & hispanic & !other ~ 'Hispanic only',
+    !afam & !hispanic & !other ~ 'Caucasian only',
+    TRUE ~ 'Other or multiple ethnicities'
+  )))
+
+# Using factor() and bind_rows() means new levels get appended at the end
+ethtab2 <- bind_rows(
+  ethtab,
+  # Subtotals for individual races
+  filter(ethtab, afam) |> mutate(Ethnicity = factor('Any African-American')),
+  filter(ethtab, hispanic) |> mutate(Ethnicity = factor('Any Hispanic')),
+  filter(ethtab, other) |> mutate(Ethnicity = factor('Any other ethnicity')),
+  # Grand total
+  mutate(ethtab, Ethnicity = factor('Total'))
+) |>
+  # Recode inputs to match original data
+  mutate(across(
+    where(is.logical),
+    \(x) factor(x, levels = c(FALSE, TRUE), labels = c('no', 'yes'))
+  ))
+
+# Now we can create the mapping table!
+EthnicityMap <- BaseMappingTable$new(
+  ethtab2,
+  raw_cols = c('afam', 'hispanic', 'other'),
+  table_cols = 'Ethnicity'
+)
+
+# Use this mapping table to conduct some counts on ethnicity
+data('Fertility', package = 'AER')
+EthnicityMap$count_aggregate(Fertility)
 }
 \section{Super class}{
 \code{\link[modulartabler:MappingTable]{modulartabler::MappingTable}} -> \code{BaseMappingTable}

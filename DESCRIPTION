@@ -20,7 +20,8 @@ Suggests:
     testthat,
     ROI.plugin.highs,
     withr,
-    glue
+    glue,
+    AER
 Imports: 
     R6,
     purrr,
