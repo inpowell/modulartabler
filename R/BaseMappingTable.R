@@ -212,7 +212,17 @@ BaseMappingTable <- R6::R6Class(
 
     #' @field matrix A matrix representation of the mapping table that indicates
     #'   which raw values (in rows) are mapped to table cells (in columns).
-    matrix = function() {private$to_matrix()},
+    #' @importFrom dplyr mutate cur_group_id
+    #' @importFrom tidyselect all_of
+    matrix = function() {
+      idx <- private$.map |>
+        mutate(.I = cur_group_id(), .by = all_of(private$.rawside_cols)) |>
+        mutate(.J = cur_group_id(), .by = all_of(private$.tabside_cols))
+
+      mat <- matrix(0L, nrow = max(idx$.I), ncol= max(idx$.J))
+      mat[cbind(idx$.I, idx$.J)] <- 1L
+      mat
+    },
 
     #' @field raw_cols The names of columns in `map` that are joined with
     #'   preprocessed data.
@@ -238,16 +248,6 @@ BaseMappingTable <- R6::R6Class(
     .map = tibble(),
     .data_cols = character(),
     .rawside_cols = character(),
-    .tabside_cols = character(),
-    #' @importFrom dplyr inner_join mutate row_number
-    to_matrix = function() {
-      idx <- self$map |>
-        inner_join(mutate(self$mraw, I = row_number()), by = self$raw_cols) |>
-        inner_join(mutate(self$mtab, J = row_number()), by = self$table_cols)
-
-      mat <- matrix(0L, nrow = nrow(self$mraw), ncol = nrow(self$mtab))
-      mat[cbind(idx$I, idx$J)] <- 1L
-      mat
-    }
+    .tabside_cols = character()
   )
 )
