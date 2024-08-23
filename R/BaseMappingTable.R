@@ -1,7 +1,8 @@
 #' R6 Class representing a mapping table.
 #'
-#' A mapping table defines the structure of a presentation table. It defines
-#' mappings from raw columns to columns in a presentation-ready table.
+#' A mapping table defines the structure of a presentation table as a
+#' many-to-many map from columns in a raw dataset, to presentation-ready
+#' categories in an output counts table.
 #'
 #' This class is virtual -- it should only be instantiated with a
 #' `BaseMappingTable` or `MultiMappingTable`.
@@ -123,7 +124,8 @@ MappingTable <- R6::R6Class(
 #' R6 class representing a mapping table for a single dimension.
 #'
 #' This mapping table class defines the structure for a single dimension of a
-#' count table.
+#' count table. It is defined by a potentially many-to-many map from raw data to
+#' table categories.
 #'
 #' @export
 #' @examples
@@ -146,8 +148,13 @@ MappingTable <- R6::R6Class(
 #' )
 #' SpeciesMap
 #'
+#' # Get the counts in each category in long format
 #' SpeciesMap$count_aggregate(iris)
-#' SpeciesMap$nullspace # This matrix is useful for cell suppression
+#'
+#' # Show the relationships in the output table. This matrix tells us that
+#' # I. setosa + I. versicolor + I. virginica - Total = 0. This is
+#' # necessary for preventing back-calculation in cell suppression.
+#' SpeciesMap$nullspace
 BaseMappingTable <- R6::R6Class(
   'BaseMappingTable', inherit = MappingTable,
   public = list(

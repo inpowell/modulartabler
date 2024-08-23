@@ -9,8 +9,9 @@ R6 Class representing a mapping table.
 R6 Class representing a mapping table.
 }
 \details{
-A mapping table defines the structure of a presentation table. It defines
-mappings from raw columns to columns in a presentation-ready table.
+A mapping table defines the structure of a presentation table as a
+many-to-many map from columns in a raw dataset, to presentation-ready
+categories in an output counts table.
 
 This class is virtual -- it should only be instantiated with a
 \code{BaseMappingTable} or \code{MultiMappingTable}.

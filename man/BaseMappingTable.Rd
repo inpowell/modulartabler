@@ -10,26 +10,36 @@ R6 class representing a mapping table for a single dimension.
 }
 \details{
 This mapping table class defines the structure for a single dimension of a
-count table.
+count table. It is defined by a potentially many-to-many map from raw data to
+table categories.
 }
 \examples{
-SpeciesMap <- local({
-  tab <- data.frame(
-    Species = factor(
-      c(1L, 2L, 3L, rep(4L, times = 3L)),
-      labels = c("I. setosa", "I. versicolor", "I. virginica", "Total")
-    ),
-    .rawspecies = rep(c("setosa", "versicolor", "virginica"), times = 2L)
-  )
-  BaseMappingTable$new(
-    tab,
-    raw_cols = ".rawspecies",
-    table_cols = "Species",
-    data_cols = "Species"
-  )
-})
+# Create a mapping table that maps iris species to their abbreviated binomial
+# nomenclature, and includes a total.
+species_table <- data.frame(
+  Species = factor(
+    c(1L, 2L, 3L, rep(4L, times = 3L)),
+    labels = c("I. setosa", "I. versicolor", "I. virginica", "Total")
+  ),
+  .rawspecies = factor(rep(c("setosa", "versicolor", "virginica"), times = 2L))
+)
+species_table
 
+SpeciesMap <- BaseMappingTable$new(
+  tab,
+  raw_cols = ".rawspecies",
+  table_cols = "Species",
+  data_cols = "Species"
+)
+SpeciesMap
+
+# Get the counts in each category in long format
 SpeciesMap$count_aggregate(iris)
+
+# Show the relationships in the output table. This matrix tells us that
+# I. setosa + I. versicolor + I. virginica - Total = 0. This is
+# necessary for preventing back-calculation in cell suppression.
+SpeciesMap$nullspace
 }
 \section{Super class}{
 \code{\link[modulartabler:MappingTable]{modulartabler::MappingTable}} -> \code{BaseMappingTable}
