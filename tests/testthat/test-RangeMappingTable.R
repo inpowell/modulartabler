@@ -139,17 +139,7 @@ test_that("non-contiguous ranges are supported in RangeMappingTable", {
   )
 
   expect_equal(RMT$count_aggregate(test), exp_counts)
-
-  # These two matrices have the same rowspace if there exists an _invertible_
-  # matrix X such that obs_ns = X %*% exp_ns
-  obs_ns <- RMT$nullspace
-  exp_ns <- rbind(c(1, 1, 1, -1))
-  candidate <- t(qr.solve(t(exp_ns), t(obs_ns)))
-
-  # This matrix is invertible?
-  expect_no_error(solve(candidate))
-  # This matrix satisfies the requirements
-  expect_equal(obs_ns, candidate %*% exp_ns)
+  expect_equal_rowspace(RMT$nullspace, rbind(c(1, 1, 1, -1)))
 })
 
 
