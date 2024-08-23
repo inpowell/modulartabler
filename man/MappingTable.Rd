@@ -115,7 +115,9 @@ categories.
 \if{html}{\out{<a id="method-MappingTable-preprocess"></a>}}
 \if{latex}{\out{\hypertarget{method-MappingTable-preprocess}{}}}
 \subsection{Method \code{preprocess()}}{
-Pre-process data for counting and aggregating
+Pre-process data for counting and aggregating. The default
+behaviour is to return the dataset unchanged, and this may be modified
+by creating a subclass.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MappingTable$preprocess(data)}\if{html}{\out{</div>}}
 }

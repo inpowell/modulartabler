@@ -56,7 +56,9 @@ MappingTable <- R6::R6Class(
       dplyr::summarise(grouped, n = sum(n, na.rm = TRUE), .groups = 'drop')
     },
 
-    #' @description Pre-process data for counting and aggregating
+    #' @description Pre-process data for counting and aggregating. The default
+    #'   behaviour is to return the dataset unchanged, and this may be modified
+    #'   by creating a subclass.
     #'
     #' @param data The dataset to prepare for counting and aggregating.
     preprocess = function(data) {

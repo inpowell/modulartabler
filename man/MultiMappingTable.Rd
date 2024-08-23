@@ -16,6 +16,33 @@ the input tables.
 \section{Super class}{
 \code{\link[modulartabler:MappingTable]{modulartabler::MappingTable}} -> \code{MultiMappingTable}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{map}}{The data frame used for mapping.}
+
+\item{\code{mtab}}{The table-side data that corresponds to columns of the matrix
+representation.}
+
+\item{\code{matrix}}{A matrix representation of the mapping table that indicates
+which raw values (in rows) are mapped to table cells (in columns).}
+
+\item{\code{raw_cols}}{The names of columns in \code{map} that are joined with
+preprocessed data.}
+
+\item{\code{data_cols}}{The names of columns preprocessed data that are joined
+with \code{map}.}
+
+\item{\code{table_cols}}{The names of columns in the output dataset.}
+
+\item{\code{join_clause}}{A \code{\link[dplyr:join_by]{dplyr::join_by()}} object that describes how to join
+the data (in \code{x}) to the mapping table (in \code{y}).}
+
+\item{\code{nullspace}}{A matrix with rowspace equal to the kernel of the matrix
+representation.}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -54,10 +81,20 @@ dimension of the desired table.}
 \if{html}{\out{<a id="method-MultiMappingTable-preprocess"></a>}}
 \if{latex}{\out{\hypertarget{method-MultiMappingTable-preprocess}{}}}
 \subsection{Method \code{preprocess()}}{
+Pre-process a dataset for counting and aggregating. The
+method for MultiMappingTable passes the data through the preprocessing
+functions for each of its subtables.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MultiMappingTable$preprocess(data)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{The dataset to prepare for counting and aggregation.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-MultiMappingTable-clone"></a>}}
