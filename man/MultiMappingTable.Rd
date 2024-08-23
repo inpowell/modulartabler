@@ -13,6 +13,36 @@ A multidimensional mapping table is the simplest way to build a table in
 multiple dimensions. It contains a cell for each level of each category in
 the input tables.
 }
+\examples{
+species_table <- data.frame(
+  Species = factor(
+    c(1L, 2L, 3L, rep(4L, times = 3L)),
+    labels = c("I. setosa", "I. versicolor", "I. virginica", "Total")
+  ),
+  .rawspecies = factor(rep(c("setosa", "versicolor", "virginica"), times = 2L))
+)
+species_table
+
+SpeciesMap <- BaseMappingTable$new(
+  species_table,
+  raw_cols = ".rawspecies",
+  table_cols = "Species",
+  data_cols = "Species"
+)
+SpeciesMap
+
+SepalMap <- RangeMappingTable$new(
+  "Sepal width", 'Sepal.Width',
+  "<2.5" = c(0, 2.5),
+  "2.5-3.4" = c(2.5, 3.5), # sic 4.0 -- actually uses interval [2.5, 2.5)
+  "3.5+" = c(3.5, Inf),
+  .other = NULL, # Excludes NA and values outside range from table
+  .total = "Total"
+)
+
+MultiMap <- MultiMappingTable$new(SpeciesMap, SepalMap)
+MultiMap$count_aggregate(iris)
+}
 \section{Super class}{
 \code{\link[modulartabler:MappingTable]{modulartabler::MappingTable}} -> \code{MultiMappingTable}
 }
