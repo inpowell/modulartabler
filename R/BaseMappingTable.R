@@ -1,6 +1,6 @@
-#' R6 Class representing a mapping table.
+#' @title R6 Class representing a mapping table.
 #'
-#' A mapping table defines the structure of a presentation table as a
+#' @description A mapping table defines the structure of a presentation table as a
 #' many-to-many map from columns in a raw dataset, to presentation-ready
 #' categories in an output counts table.
 #'
@@ -123,9 +123,9 @@ MappingTable <- R6::R6Class(
 
 # BaseMappingTable --------------------------------------------------------
 
-#' R6 class representing a mapping table for a single dimension.
+#' @title R6 class representing a mapping table for a single dimension.
 #'
-#' This mapping table class defines the structure for a single dimension of a
+#' @description This mapping table class defines the structure for a single dimension of a
 #' count table. It is defined by a potentially many-to-many map from raw data to
 #' table categories.
 #'
@@ -284,7 +284,7 @@ BaseMappingTable <- R6::R6Class(
     #'   preprocessed data.
     raw_cols = function() {private$.rawside_cols},
 
-    #' @field data_cols The names of columns preprocessed data that are joined
+    #' @field data_cols The names of columns in the preprocessed data that are joined
     #'   with `map`.
     data_cols = function() {private$.data_cols},
 

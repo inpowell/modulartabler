@@ -1,6 +1,6 @@
-#' R6 class representing a multidimensional mapping table.
+#' @title R6 class representing a multidimensional mapping table.
 #'
-#' A multidimensional mapping table is the simplest way to build a table in
+#' @description A multidimensional mapping table is the simplest way to build a table in
 #' multiple dimensions. It contains a cell for each level of each category in
 #' the input tables.
 #'
@@ -98,7 +98,7 @@ MultiMappingTable <- R6::R6Class(
     raw_cols = function() {
       do.call(c, purrr::map(private$.tables, function(x) x$raw_cols))
     },
-    #' @field data_cols The names of columns preprocessed data that are joined
+    #' @field data_cols The names of columns in the preprocessed data that are joined
     #'   with `map`.
     data_cols = function() {
       do.call(c, purrr::map(private$.tables, function(x) x$data_cols))

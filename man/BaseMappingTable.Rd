@@ -4,11 +4,6 @@
 \alias{BaseMappingTable}
 \title{R6 class representing a mapping table for a single dimension.}
 \description{
-R6 class representing a mapping table for a single dimension.
-
-R6 class representing a mapping table for a single dimension.
-}
-\details{
 This mapping table class defines the structure for a single dimension of a
 count table. It is defined by a potentially many-to-many map from raw data to
 table categories.
@@ -108,7 +103,7 @@ which raw values (in rows) are mapped to table cells (in columns).}
 \item{\code{raw_cols}}{The names of columns in \code{map} that are joined with
 preprocessed data.}
 
-\item{\code{data_cols}}{The names of columns preprocessed data that are joined
+\item{\code{data_cols}}{The names of columns in the preprocessed data that are joined
 with \code{map}.}
 
 \item{\code{table_cols}}{The names of columns in the output dataset.}

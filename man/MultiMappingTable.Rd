@@ -4,11 +4,6 @@
 \alias{MultiMappingTable}
 \title{R6 class representing a multidimensional mapping table.}
 \description{
-R6 class representing a multidimensional mapping table.
-
-R6 class representing a multidimensional mapping table.
-}
-\details{
 A multidimensional mapping table is the simplest way to build a table in
 multiple dimensions. It contains a cell for each level of each category in
 the input tables.
@@ -60,7 +55,7 @@ which raw values (in rows) are mapped to table cells (in columns).}
 \item{\code{raw_cols}}{The names of columns in \code{map} that are joined with
 preprocessed data.}
 
-\item{\code{data_cols}}{The names of columns preprocessed data that are joined
+\item{\code{data_cols}}{The names of columns in the preprocessed data that are joined
 with \code{map}.}
 
 \item{\code{table_cols}}{The names of columns in the output dataset.}

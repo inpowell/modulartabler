@@ -1,9 +1,26 @@
-#' R6 class representing a mapping table for numeric ranges.
+#' @title R6 class representing a mapping table for numeric ranges.
 #'
-#' This mapping table class defines the structure for a single dimension of a
+#' @description This mapping table class defines the structure for a single dimension of a
 #' count table, mapping a continuous variable to ranges.
 #'
 #' @export
+#' @examples
+#' # Maps the `age` column into `Age` categories of <20, 20-34, and 35+,
+#' # with separate Unknown and Total categories.
+#' AgeMap <- RangeMappingTable$new(
+#'   table_name = 'Age',
+#'   data_col = 'age',
+#'   "<20" = c(-Inf, 20),
+#'   "20-34" = c(20, 35),
+#'   "35+" = c(35, Inf),
+#'   .other = "Unknown",
+#'   .total = "Total",
+#'   bounds = '[)' # include lower bound, exclude upper bound
+#' )
+#' AgeMap
+#'
+#' refdata <- data.frame(age = c(0:120, NA))
+#' AgeMap$count_aggregate(refdata)
 RangeMappingTable <- R6::R6Class(
   'RangeMappingTable', inherit = BaseMappingTable,
 
@@ -23,29 +40,11 @@ RangeMappingTable <- R6::R6Class(
     #' @param .total The name of the category to use for the total mapping,
     #'   which includes all records. Set to NULL to omit the total category.
     #' @param bounds Define which sides of each range should be included. At
-    #'   this stage, only semi-open ranges are allowed, with `[)` keeping the
-    #'   lower limit but excluding the upper limit, and `(]` keeping the upper
+    #'   this stage, only semi-open ranges are allowed, with \code{[)} keeping the
+    #'   lower limit but excluding the upper limit, and \code{(]} keeping the upper
     #'   limit but excluding the lower limit.
     #'
     #' @return A new `MappingTable` object.
-    #'
-    #' @examples
-    #' # Maps the `age` column into `Age` categories of <20, 20-34, and 35+,
-    #' # with separate Unknown and Total categories.
-    #' AgeMap <- RangeMappingTable$new(
-    #'   table_name = 'Age',
-    #'   data_col = 'age',
-    #'   "<20" = c(-Inf, 20),
-    #'   "20-34" = c(20, 35),
-    #'   "35+" = c(35, Inf),
-    #'   .other = "Unknown",
-    #'   .total = "Total",
-    #'   bounds = '[)' # include lower bound, exclude upper bound
-    #' )
-    #' AgeMap
-    #'
-    #' refdata <- data.frame(age = c(0:120, NA))
-    #' AgeMap$count_aggregate(refdata)
     initialize = function(
         table_name,
         data_col,

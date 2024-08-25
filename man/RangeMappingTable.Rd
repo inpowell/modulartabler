@@ -4,20 +4,10 @@
 \alias{RangeMappingTable}
 \title{R6 class representing a mapping table for numeric ranges.}
 \description{
-R6 class representing a mapping table for numeric ranges.
-
-R6 class representing a mapping table for numeric ranges.
-}
-\details{
 This mapping table class defines the structure for a single dimension of a
 count table, mapping a continuous variable to ranges.
 }
 \examples{
-
-## ------------------------------------------------
-## Method `RangeMappingTable$new`
-## ------------------------------------------------
-
 # Maps the `age` column into `Age` categories of <20, 20-34, and 35+,
 # with separate Unknown and Total categories.
 AgeMap <- RangeMappingTable$new(
@@ -91,40 +81,15 @@ from the mapping and totals.}
 which includes all records. Set to NULL to omit the total category.}
 
 \item{\code{bounds}}{Define which sides of each range should be included. At
-this stage, only semi-open ranges are allowed, with \verb{[)} keeping the
-lower limit but excluding the upper limit, and \verb{(]} keeping the upper
-limit but excluding the lower limit.
-
-[)\verb{keeping the lower limit but excluding the upper limit, and}(]: R:)\%60\%20keeping\%20the\%0A\%20\%20lower\%20limit\%20but\%20excluding\%20the\%20upper\%20limit,\%20and\%20\%60(}
+this stage, only semi-open ranges are allowed, with \code{[)} keeping the
+lower limit but excluding the upper limit, and \code{(]} keeping the upper
+limit but excluding the lower limit.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 A new \code{MappingTable} object.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{# Maps the `age` column into `Age` categories of <20, 20-34, and 35+,
-# with separate Unknown and Total categories.
-AgeMap <- RangeMappingTable$new(
-  table_name = 'Age',
-  data_col = 'age',
-  "<20" = c(-Inf, 20),
-  "20-34" = c(20, 35),
-  "35+" = c(35, Inf),
-  .other = "Unknown",
-  .total = "Total",
-  bounds = '[)' # include lower bound, exclude upper bound
-)
-AgeMap
-
-refdata <- data.frame(age = c(0:120, NA))
-AgeMap$count_aggregate(refdata)
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RangeMappingTable-preprocess"></a>}}
