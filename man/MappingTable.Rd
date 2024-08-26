@@ -88,7 +88,7 @@ Print a mapping table and return it invisibly
 \if{latex}{\out{\hypertarget{method-MappingTable-count_aggregate}{}}}
 \subsection{Method \code{count_aggregate()}}{
 Count records or sum weights from raw data with a mapping
-tbale. \code{count_aggregate()} gives the count of records in each of the
+table. \code{count_aggregate()} gives the count of records in each of the
 output table groups. It wraps around \code{\link[dplyr:count]{dplyr::tally()}}, which allows
 weighted sums instead of counts using the \code{wt} argument.
 \subsection{Usage}{

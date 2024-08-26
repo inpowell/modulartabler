@@ -1,22 +1,29 @@
 #' Count and sum into a long table
 #'
-#' `count_aggregate` counts and aggregates raw data into the structure
-#' determined by the provided mapping table `MT`.
+#' `count_aggregate` counts records or sum weights from raw data with a mapping
+#'   table. It gives the count of records in each of the
+#'   output table groups. It wraps around [dplyr::tally()], which allows
+#'   weighted sums instead of counts using the `wt` argument.
 #'
 #' @param MT The `MappingTable` object defining the structure of the table.
 #' @param data The raw dataset to count and aggregate.
+#' @param wt An optional column in `data` to sum records by. Passed to
+#'   [dplyr::tally()]. When `NULL` (the default), counts records. Otherwise,
+#'   uses `sum(wt)`.
 #' @param ... Passed to [dplyr::right_join]
+#' @param name The name of the count column to create, if it does not
+#'   already exist. Passed to [dplyr::tally()].
 #'
 #' @return `count_aggregate` returns a table of aggregated counts in long
 #'   format. The structure of the output table will be `MT$mtab` with an extra
-#'   column `n` for the counts.
+#'   column for the counts (`n` by default if `name` is not specified).
 #'
 #' @export
-count_aggregate <- function(MT, data, ...) {
+count_aggregate <- function(MT, data, wt = NULL, ..., name = 'n') {
   if (!inherits(MT, 'MappingTable')) {
     cli::cli_abort("{.var MT} must be a {.cls MappingTable} object in {.fun count_aggregate}.")
   }
-  MT$count_aggregate(data, ...)
+  MT$count_aggregate(data, wt = !!rlang::enquo(wt), name = name, ...)
 }
 
 #' Convert count data to tabular form

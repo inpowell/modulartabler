@@ -45,7 +45,7 @@ MappingTable <- R6::R6Class(
     },
 
     #' @description Count records or sum weights from raw data with a mapping
-    #'   tbale. `count_aggregate()` gives the count of records in each of the
+    #'   table. `count_aggregate()` gives the count of records in each of the
     #'   output table groups. It wraps around [dplyr::tally()], which allows
     #'   weighted sums instead of counts using the `wt` argument.
     #'
