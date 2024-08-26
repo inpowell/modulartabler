@@ -30,30 +30,40 @@ MappingTable <- R6::R6Class(
       invisible(self)
     },
 
-    #' @description Count records in a data set, grouping by mapping table
-    #'   categories.
-    #' @param data The raw dataset to count and aggregate.
-    #' @param ... Passed to [dplyr::inner_join]
-    count_aggregate = function(data, ...) {
+    #' @description Count records or sum weights from raw data with a mapping
+    #'   tbale. `count_aggregate()` gives the count of records in each of the
+    #'   output table groups. It wraps around [dplyr::tally()], which allows
+    #'   weighted sums instead of counts using the `wt` argument.
+    #'
+    #' @param data The raw dataset to aggregate.
+    #' @param wt An optional column in `data` to sum records by. Passed to
+    #'   [dplyr::tally()]. When `NULL` (the default), counts records. Otherwise,
+    #'   uses `sum(wt)`.
+    #' @param ... Passed to [dplyr::right_join()].
+    #' @param name The name of the count column to create, if it does not
+    #'   already exist. Passed to [dplyr::tally()].
+    #' @importFrom dplyr group_by across tally ungroup rename right_join arrange
+    #' @importFrom tidyselect all_of
+    count_aggregate  = function(data, wt = NULL, ..., name = 'n') {
       data <- self$preprocess(data)
-      grpraw <- dplyr::group_by(
-        data,
-        dplyr::across(tidyselect::all_of(self$data_cols))
-      )
-      summraw <- dplyr::summarise(grpraw, n = dplyr::n(), .groups = 'drop')
+      grpdata <- group_by(data, across(all_of(self$data_cols)))
+      tallydata <- ungroup(tally(grpdata, wt = {{wt}}, name = {{name}}))
 
-      joined <- dplyr::right_join(
-        x = summraw,
+      renamevec <- setNames(nm = self$raw_cols, object = self$data_cols)
+      renamed <- rename(tallydata, !!!renamevec)
+
+      joined <- right_join(
+        x = renamed,
         y = self$map,
-        by = self$join_clause,
+        by = self$raw_cols,
+        suffix = c('.raw', ''), # Ensure mapped columns retain name
         ...
       )
 
-      grouped <- dplyr::group_by(
-        joined,
-        dplyr::across(tidyselect::all_of(self$table_cols))
-      )
-      dplyr::summarise(grouped, n = sum(n, na.rm = TRUE), .groups = 'drop')
+      n <- rlang::sym(name)
+      grpjoin <- group_by(joined, across(all_of(self$table_cols)))
+      tallyjoin <- ungroup(tally(grpjoin, wt = !!n, name = {{name}}))
+      arrange(tallyjoin, across(all_of(self$table_cols)))
     },
 
     #' @description Pre-process data for counting and aggregating. The default

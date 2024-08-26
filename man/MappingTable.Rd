@@ -90,18 +90,27 @@ Print a mapping table and return it invisibly
 \if{html}{\out{<a id="method-MappingTable-count_aggregate"></a>}}
 \if{latex}{\out{\hypertarget{method-MappingTable-count_aggregate}{}}}
 \subsection{Method \code{count_aggregate()}}{
-Count records in a data set, grouping by mapping table
-categories.
+Count records or sum weights from raw data with a mapping
+tbale. \code{count_aggregate()} gives the count of records in each of the
+output table groups. It wraps around \code{\link[dplyr:count]{dplyr::tally()}}, which allows
+weighted sums instead of counts using the \code{wt} argument.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MappingTable$count_aggregate(data, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{MappingTable$count_aggregate(data, wt = NULL, ..., name = "n")}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{data}}{The raw dataset to count and aggregate.}
+\item{\code{data}}{The raw dataset to aggregate.}
 
-\item{\code{...}}{Passed to \link[dplyr:mutate-joins]{dplyr::inner_join}}
+\item{\code{wt}}{An optional column in \code{data} to sum records by. Passed to
+\code{\link[dplyr:count]{dplyr::tally()}}. When \code{NULL} (the default), counts records. Otherwise,
+uses \code{sum(wt)}.}
+
+\item{\code{...}}{Passed to \code{\link[dplyr:mutate-joins]{dplyr::right_join()}}.}
+
+\item{\code{name}}{The name of the count column to create, if it does not
+already exist. Passed to \code{\link[dplyr:count]{dplyr::tally()}}.}
 }
 \if{html}{\out{</div>}}
 }
