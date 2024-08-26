@@ -1,4 +1,4 @@
-# Two matrices A and E have the same rowspace if there exists an invertible
+# Two matrices A and E have the same rowspace iff there exists an invertible
 # matrix X such that A = X %*% E. We will also assume that rows are linearly
 # independent.
 expect_equal_rowspace <- function(object, expected, ...) {
