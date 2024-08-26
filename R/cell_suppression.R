@@ -3,7 +3,7 @@
 #' These functions implement primary and secondary suppression in a contingency
 #' table according to the algorithm from Fischetti and Salazar (2001). Given a
 #' table in long format and the margins the table is summed over, this function
-#' gives a logical vector of the the cells that need to be suppressed to prevent
+#' gives a logical vector of the cells that need to be suppressed to prevent
 #' back-calculation.
 #'
 #' `determine_cell_suppression` performs primary suppression of cells between
@@ -44,10 +44,8 @@
 #' @references Fischetti M, Salazar JJ. Solving the cell suppression problem on
 #'   tabular data with linear constraints. Management Science.
 #'   2001;47(7):1008-1027.
-#'   \url{https://www.proquest.com/scholarly-journals/solving-cell-suppression-problem-on-tabular-data/docview/213175964/se-2?accountid=147118}
+#'   <https://www.proquest.com/scholarly-journals/solving-cell-suppression-problem-on-tabular-data/docview/213175964/se-2?accountid=147118>
 #'
-#'
-#' @md
 #' @export
 determine_cell_suppression <- function(
     N,
@@ -365,6 +363,7 @@ suppress_secondary <- function(
 #' @return `to_dense` returns a matrix with three columns. The first column is
 #'   the row number, the second is the column number, and the third is the
 #'   value.
+#' @noRd
 to_dense <- function(M, zapsmall = TRUE,
                      digits = ceiling(-log10(.Machine$double.eps) / 2)) {
   if (zapsmall)

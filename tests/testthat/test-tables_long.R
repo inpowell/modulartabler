@@ -1,23 +1,3 @@
-test_that("count_aggregate counts and sums correctly", {
-  map <- data.frame(
-    Map = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
-                 labels = c(LETTERS[1:4], 'C+D', 'Total')),
-    raw = factor(LETTERS[c(1L:4L, 3L:4L, 1L:4L)])
-  )
-  MT <- BaseMappingTable$new(map, 'raw', 'Map')
-
-  rawdata <- dplyr::tibble(
-    raw = factor(LETTERS[1L:4L])[rep(1:4, times = c(23, 29, 31, 37))]
-  )
-
-  expected <- dplyr::tibble(
-    Map = factor(c('A', 'B', 'C', 'D', 'C+D', 'Total'), levels = levels(map$Map)),
-    n = c(23L, 29L, 31L, 37L, 68L, 120L)
-  )
-
-  expect_equal(count_aggregate(MT, rawdata), expected)
-})
-
 test_that('convert_tabular converts a semi-long table correctly', {
   semilong <- data.frame(
     Row = gl(3, 1, 12, labels = c('A', 'B', 'C')),

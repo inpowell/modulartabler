@@ -64,7 +64,7 @@ suppressed
 These functions implement primary and secondary suppression in a contingency
 table according to the algorithm from Fischetti and Salazar (2001). Given a
 table in long format and the margins the table is summed over, this function
-gives a logical vector of the the cells that need to be suppressed to prevent
+gives a logical vector of the cells that need to be suppressed to prevent
 back-calculation.
 }
 \details{
