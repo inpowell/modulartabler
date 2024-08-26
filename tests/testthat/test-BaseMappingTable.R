@@ -18,6 +18,47 @@ test_that("count_aggregate counts correctly for BaseMappingTables", {
   expect_equal(count_aggregate(MT, rawdata), expected)
 })
 
+test_that("count_aggregate works when table_cols = data_cols", {
+  map <- data.frame(
+    Map = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
+                 labels = c(LETTERS[1:4], 'C+D', 'Total')),
+    raw = factor(LETTERS[c(1L:4L, 3L:4L, 1L:4L)])
+  )
+  MT <- BaseMappingTable$new(map, raw_cols = 'raw', table_cols = 'Map', data_cols = 'Map')
+
+  rawdata <- dplyr::tibble(
+    Map = factor(LETTERS[1L:4L])[rep(1:4, times = c(23, 29, 31, 37))]
+  )
+
+  expected <- dplyr::tibble(
+    Map = factor(c('A', 'B', 'C', 'D', 'C+D', 'Total'), levels = levels(map$Map)),
+    n = c(23L, 29L, 31L, 37L, 68L, 120L)
+  )
+
+  expect_equal(MT$count_aggregate(rawdata), expected)
+})
+
+test_that("count_aggregate works with weights", {
+  map <- data.frame(
+    Map = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),
+                 labels = c(LETTERS[1:4], 'C+D', 'Total')),
+    raw = factor(LETTERS[c(1L:4L, 3L:4L, 1L:4L)])
+  )
+  MT <- BaseMappingTable$new(map, raw_cols = 'raw', table_cols = 'Map', data_cols = 'raw')
+
+  rawdata <- dplyr::tibble(
+    raw = factor(LETTERS[1L:4L]),
+    weight = c(23, 29, 31, 37)
+  )
+
+  expected <- dplyr::tibble(
+    Map = factor(c('A', 'B', 'C', 'D', 'C+D', 'Total'), levels = levels(map$Map)),
+    n = c(23L, 29L, 31L, 37L, 68L, 120L)
+  )
+
+  expect_equal(MT$count_aggregate(rawdata, wt = weight), expected)
+})
+
 test_that("nullspace for BaseMappingTable is correct", {
   map <- tibble(
     Map = factor(c(1L, 2L, 3L, 4L, rep(5L, 2), rep(6L, 4)),

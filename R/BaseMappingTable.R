@@ -24,36 +24,60 @@ MappingTable <- R6::R6Class(
     #' @param ... Passed to the `print` method for `tibble`
     print = function(...) {
       cat('Mapping table:\n')
-      cat('  Map:\n')
+      if (isTRUE(all.equal(self$data_cols, self$raw_cols))) {
+        cat(sprintf(
+          "(%s) \u2192 (%s)\n", # Right arrow
+          paste0(self$data_cols, collapse = ', '),
+          paste0(self$table_cols, collapse = ', ')
+        ))
+      } else {
+        cat(sprintf(
+          "(%s) \u2192 (%s) \u2192 (%s)\n", # Right arrow
+          paste0(self$data_cols, collapse = ', '),
+          paste0(self$raw_cols, collapse = ', '),
+          paste0(self$table_cols, collapse = ', ')
+        ))
+      }
+
+      cat('\nMap:\n')
       print(self$map, ...)
-      print(self$join_clause)
       invisible(self)
     },
 
-    #' @description Count records in a data set, grouping by mapping table
-    #'   categories.
-    #' @param data The raw dataset to count and aggregate.
-    #' @param ... Passed to [dplyr::inner_join]
-    count_aggregate = function(data, ...) {
+    #' @description Count records or sum weights from raw data with a mapping
+    #'   table. `count_aggregate()` gives the count of records in each of the
+    #'   output table groups. It wraps around [dplyr::tally()], which allows
+    #'   weighted sums instead of counts using the `wt` argument.
+    #'
+    #' @param data The raw dataset to aggregate.
+    #' @param wt An optional column in `data` to sum records by. Passed to
+    #'   [dplyr::tally()]. When `NULL` (the default), counts records. Otherwise,
+    #'   uses `sum(wt)`.
+    #' @param ... Passed to [dplyr::right_join()].
+    #' @param name The name of the count column to create, if it does not
+    #'   already exist. Passed to [dplyr::tally()].
+    #' @importFrom dplyr group_by across tally ungroup rename right_join arrange
+    #' @importFrom tidyselect all_of
+    count_aggregate  = function(data, wt = NULL, ..., name = 'n') {
       data <- self$preprocess(data)
-      grpraw <- dplyr::group_by(
-        data,
-        dplyr::across(tidyselect::all_of(self$data_cols))
-      )
-      summraw <- dplyr::summarise(grpraw, n = dplyr::n(), .groups = 'drop')
+      grpdata <- group_by(data, across(all_of(self$data_cols)))
+      tallydata <- ungroup(tally(grpdata, wt = {{wt}}, name = {{name}}))
 
-      joined <- dplyr::right_join(
-        x = summraw,
+      renamevec <- setNames(nm = self$raw_cols, object = self$data_cols)
+      renamed <- rename(tallydata, !!!renamevec)
+
+      joined <- right_join(
+        x = renamed,
         y = self$map,
-        by = self$join_clause,
+        by = self$raw_cols,
+        suffix = c('.raw', ''), # Ensure mapped columns retain name
         ...
       )
 
-      grouped <- dplyr::group_by(
-        joined,
-        dplyr::across(tidyselect::all_of(self$table_cols))
-      )
-      dplyr::summarise(grouped, n = sum(n, na.rm = TRUE), .groups = 'drop')
+      n <- rlang::sym(name)
+      grpjoin <- group_by(joined, across(all_of(self$table_cols)))
+      tallyjoin <- ungroup(tally(grpjoin, wt = !!n, name = {{name}}))
+      arrange(tallyjoin, across(all_of(self$table_cols)))
     },
 
     #' @description Pre-process data for counting and aggregating. The default
@@ -88,10 +112,6 @@ MappingTable <- R6::R6Class(
 
     #' @field table_cols The names of columns in the output dataset.
     table_cols = function() {stop('table_cols has not been implemented for MappingTable')},
-
-    #' @field join_clause A [dplyr::join_by()] object that describes how to join
-    #'   the data (in `x`) to the mapping table (in `y`).
-    join_clause = function() {stop('join_clause has not been implemented for MappingTable')},
 
     #' @field nullspace A matrix with rowspace equal to the kernel of the matrix
     #'   representation.
@@ -289,15 +309,7 @@ BaseMappingTable <- R6::R6Class(
     data_cols = function() {private$.data_cols},
 
     #' @field table_cols The names of columns in the output dataset.
-    table_cols = function() {private$.tabside_cols},
-
-    #' @field join_clause A [dplyr::join_by()] object that describes how to join
-    #'   the data (in `x`) to the mapping table (in `y`).
-    join_clause = function() {
-      exprs <- purrr::map2(private$.data_cols, private$.rawside_cols,
-                           \(x, y) call('==', x, y))
-      dplyr::join_by(!!!exprs)
-    }
+    table_cols = function() {private$.tabside_cols}
   ),
 
   private = list(
