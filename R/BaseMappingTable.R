@@ -24,9 +24,23 @@ MappingTable <- R6::R6Class(
     #' @param ... Passed to the `print` method for `tibble`
     print = function(...) {
       cat('Mapping table:\n')
-      cat('  Map:\n')
+      if (isTRUE(all.equal(self$data_cols, self$raw_cols))) {
+        cat(sprintf(
+          "(%s) \u2192 (%s)\n", # Right arrow
+          paste0(self$data_cols, collapse = ', '),
+          paste0(self$table_cols, collapse = ', ')
+        ))
+      } else {
+        cat(sprintf(
+          "(%s) \u2192 (%s) \u2192 (%s)\n", # Right arrow
+          paste0(self$data_cols, collapse = ', '),
+          paste0(self$raw_cols, collapse = ', '),
+          paste0(self$table_cols, collapse = ', ')
+        ))
+      }
+
+      cat('\nMap:\n')
       print(self$map, ...)
-      print(self$join_clause)
       invisible(self)
     },
 
@@ -98,10 +112,6 @@ MappingTable <- R6::R6Class(
 
     #' @field table_cols The names of columns in the output dataset.
     table_cols = function() {stop('table_cols has not been implemented for MappingTable')},
-
-    #' @field join_clause A [dplyr::join_by()] object that describes how to join
-    #'   the data (in `x`) to the mapping table (in `y`).
-    join_clause = function() {stop('join_clause has not been implemented for MappingTable')},
 
     #' @field nullspace A matrix with rowspace equal to the kernel of the matrix
     #'   representation.
@@ -299,15 +309,7 @@ BaseMappingTable <- R6::R6Class(
     data_cols = function() {private$.data_cols},
 
     #' @field table_cols The names of columns in the output dataset.
-    table_cols = function() {private$.tabside_cols},
-
-    #' @field join_clause A [dplyr::join_by()] object that describes how to join
-    #'   the data (in `x`) to the mapping table (in `y`).
-    join_clause = function() {
-      exprs <- purrr::map2(private$.data_cols, private$.rawside_cols,
-                           \(x, y) call('==', x, y))
-      dplyr::join_by(!!!exprs)
-    }
+    table_cols = function() {private$.tabside_cols}
   ),
 
   private = list(

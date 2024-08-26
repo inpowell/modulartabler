@@ -34,9 +34,6 @@ with \code{map}.}
 
 \item{\code{table_cols}}{The names of columns in the output dataset.}
 
-\item{\code{join_clause}}{A \code{\link[dplyr:join_by]{dplyr::join_by()}} object that describes how to join
-the data (in \code{x}) to the mapping table (in \code{y}).}
-
 \item{\code{nullspace}}{A matrix with rowspace equal to the kernel of the matrix
 representation.}
 }

@@ -106,13 +106,6 @@ MultiMappingTable <- R6::R6Class(
     #' @field table_cols The names of columns in the output dataset.
     table_cols = function() {do.call(c, purrr::map(private$.tables, function(x) x$table_cols))},
 
-    #' @field join_clause A [dplyr::join_by()] object that describes how to join
-    #'   the data (in `x`) to the mapping table (in `y`).
-    join_clause = function() {
-      exprs <- purrr::map(private$.tables, function(x) x$join_clause$exprs)
-      dplyr::join_by(!!!unlist(exprs))
-    },
-
     #' @field nullspace A matrix with rowspace equal to the kernel of the matrix
     #'   representation.
     nullspace = function() { # override
