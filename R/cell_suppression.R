@@ -252,103 +252,116 @@ suppress_secondary <- function(
 
   # Initial suppression requirement
   candidate_suppression <- suppress
+  i <- 1L
 
-  for (attack.ik in ik) { # Loop over cells to be suppressed
-    for (i in seq_len(max_iter)) {
-      if (SPL[attack.ik] > 0L || UPL[attack.ik] > 0L) {
-        attacker.max <- ROI_solve(UPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
-      }
+  repeat {
 
-      if (SPL[attack.ik] > 0L || LPL[attack.ik] > 0L) {
-        attacker.min <- ROI_solve(LPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
-      }
+    attacker_success <- FALSE
 
-      # Is the attacker subproblem successful with these constraints?
-      attacker_success <- FALSE
+    for (attack.ik in ik) { # Attack all cells to be suppressed
 
-      if (UPL[attack.ik] > 0L &&
-          identical(attacker.max$status$code, 0L) &&
-          attacker.max$objval < N[attack.ik] + UPL[attack.ik]) {
-        # Successful solution
-        alpha <- attacker.max$solution[seq_len(n)]
-        beta <- attacker.max$solution[n + seq_len(n)]
+      # Calculate known bounds
+        if (SPL[attack.ik] > 0L || UPL[attack.ik] > 0L) {
+          attacker.max <- ROI_solve(UPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
+        }
 
-        constraints(master_lp) <- c(
-          constraints(master_lp),
-          # ref, eqn (25)
-          L_constraint(
-            pmin(alpha * UB + beta * LB, UPL[attack.ik]), # Sec 4.2.1
-            dir = '>=',
-            rhs = UPL[attack.ik]
+        if (SPL[attack.ik] > 0L || LPL[attack.ik] > 0L) {
+          attacker.min <- ROI_solve(LPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
+        }
+
+        # Evaluate UPL subproblem
+        if (UPL[attack.ik] > 0L &&
+            identical(attacker.max$status$code, 0L) &&
+            attacker.max$objval < N[attack.ik] + UPL[attack.ik]) {
+          # Successful solution
+          alpha <- attacker.max$solution[seq_len(n)]
+          beta <- attacker.max$solution[n + seq_len(n)]
+
+          constraints(master_lp) <- c(
+            constraints(master_lp),
+            # ref, eqn (25)
+            L_constraint(
+              pmin(alpha * UB + beta * LB, UPL[attack.ik]), # Sec 4.2.1
+              dir = '>=',
+              rhs = UPL[attack.ik]
+            )
           )
-        )
 
-        attacker_success <- TRUE
-      }
+          attacker_success <- TRUE
+        }
 
-      if (LPL[attack.ik] > 0L &&
-          identical(attacker.min$status$code, 0L) &&
-          -attacker.min$objval > N[attack.ik] - LPL[attack.ik]) {
-        # Successful solution
-        alpha <- attacker.min$solution[seq_len(n)]
-        beta <- attacker.min$solution[n + seq_len(n)]
+        # Evaluate LPL subproblem
+        if (LPL[attack.ik] > 0L &&
+            identical(attacker.min$status$code, 0L) &&
+            -attacker.min$objval > N[attack.ik] - LPL[attack.ik]) {
+          # Successful solution
+          alpha <- attacker.min$solution[seq_len(n)]
+          beta <- attacker.min$solution[n + seq_len(n)]
 
-        constraints(master_lp) <- c(
-          constraints(master_lp),
-          # ref, eqn (26)
-          L_constraint(
-            pmin(alpha * UB + beta * LB, LPL[attack.ik]), # Sec 4.2.1
-            dir = '>=',
-            rhs = LPL[attack.ik]
+          constraints(master_lp) <- c(
+            constraints(master_lp),
+            # ref, eqn (26)
+            L_constraint(
+              pmin(alpha * UB + beta * LB, LPL[attack.ik]), # Sec 4.2.1
+              dir = '>=',
+              rhs = LPL[attack.ik]
+            )
           )
-        )
 
-        attacker_success <- TRUE
-      }
+          attacker_success <- TRUE
+        }
 
-      if (SPL[attack.ik] > 0L &&
-          identical(attacker.max$status$code, 0L) &&
-          identical(attacker.min$status$code, 0L) &&
-          # Note negation in eqn (23)
-          attacker.max$objval + attacker.min$objval < SPL[attack.ik]) {
+        # Evaluate SPL subproblem
+        if (SPL[attack.ik] > 0L &&
+            identical(attacker.max$status$code, 0L) &&
+            identical(attacker.min$status$code, 0L) &&
+            # Note negation in eqn (23)
+            attacker.max$objval + attacker.min$objval < SPL[attack.ik]) {
 
-        alpha <- attacker.min$solution[seq_len(n)] +
-          attacker.max$solution[seq_len(n)]
+          alpha <- attacker.min$solution[seq_len(n)] +
+            attacker.max$solution[seq_len(n)]
 
-        beta <- attacker.min$solution[n + seq_len(n)] +
-          attacker.max$solution[n + seq_len(n)]
+          beta <- attacker.min$solution[n + seq_len(n)] +
+            attacker.max$solution[n + seq_len(n)]
 
-        constraints(master_lp) <- c(
-          constraints(master_lp),
-          # ref, eqn (27)
-          L_constraint(
-            pmin(alpha * UB + beta * LB, SPL[attack.ik]), # Sec 4.2.1
-            dir = '>=',
-            rhs = SPL[attack.ik]
+          constraints(master_lp) <- c(
+            constraints(master_lp),
+            # ref, eqn (27)
+            L_constraint(
+              pmin(alpha * UB + beta * LB, SPL[attack.ik]), # Sec 4.2.1
+              dir = '>=',
+              rhs = SPL[attack.ik]
+            )
           )
-        )
 
-        attacker_success <- TRUE
+          attacker_success <- TRUE
 
-      }
+        }
 
-      # If there is no successful avenue of attack, move to the next suppressed cell
-      if (!attacker_success) break
+        if (!attacker_success) break
 
-      master_soln <- ROI_solve(master_lp, ...)
-
-      candidate_suppression <- as.logical(master_soln$solution)
     }
 
-    if (identical(i, max_iter) && attacker_success) {
-      stop("Maximum attacker iterations reached")
-    }
+    # If there is no successful avenue of attack, break out
+    if (!attacker_success) break
+
+    # Exit with error if iteration limit exceeded
+    if (identical(i, max_iter) && attacker_success)
+      stop("Maximum attacker iterations reached. Consider increasing the max_iter parameter")
+
+    # Re-solve master LP with new constraints to feed next cycle
+    i <- i + 1L
+    master_soln <- ROI_solve(master_lp, ...)
+    candidate_suppression <- as.logical(master_soln$solution)
+
   }
 
   # Any primary suppressed cell should be suppressed in output
-  stopifnot(all(candidate_suppression[suppress]))
+  if (!all(candidate_suppression[suppress]))
+    stop("Optimal solution resulted in primary suppression failures")
 
   return(candidate_suppression)
+
 }
 
 #' Convenience function to convert matrix to dense representation
