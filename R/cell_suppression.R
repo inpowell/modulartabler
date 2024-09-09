@@ -149,7 +149,7 @@ suppress_secondary <- function(
     cli::cli_abort(info, class = c('SPL-error', 'bounds-error'))
   }
 
-    # Determine cells requiring primary suppression
+  # Determine cells requiring primary suppression
   ik <- which(suppress)
   p <- length(ik)
 
@@ -256,9 +256,13 @@ suppress_secondary <- function(
 
   repeat {
 
-    attacker_success <- FALSE
+    attacker_success <- final_loop <- FALSE
 
     for (attack.ik in ik) { # Attack all cells to be suppressed
+
+      for (j in seq_len(max_iter)) {
+
+        attacker_success <- FALSE
 
       # Calculate known bounds
         if (SPL[attack.ik] > 0L || UPL[attack.ik] > 0L) {
@@ -287,7 +291,7 @@ suppress_secondary <- function(
             )
           )
 
-          attacker_success <- TRUE
+          attacker_success <- final_loop <- TRUE
         }
 
         # Evaluate LPL subproblem
@@ -308,7 +312,7 @@ suppress_secondary <- function(
             )
           )
 
-          attacker_success <- TRUE
+          attacker_success <- final_loop <- TRUE
         }
 
         # Evaluate SPL subproblem
@@ -334,16 +338,24 @@ suppress_secondary <- function(
             )
           )
 
-          attacker_success <- TRUE
+          attacker_success <- final_loop <- TRUE
 
         }
 
         if (!attacker_success) break
 
+        master_soln <- ROI_solve(master_lp, ...)
+        candidate_suppression <- as.logical(master_soln$solution)
+
+      }
+
+      if (identical(j, max_iter) && attacker_success)
+        stop("Maximum attacker iterations reached. Consider increasing the max_iter parameter")
+
     }
 
     # If there is no successful avenue of attack, break out
-    if (!attacker_success) break
+    if (!final_loop) break
 
     # Exit with error if iteration limit exceeded
     if (identical(i, max_iter) && attacker_success)
