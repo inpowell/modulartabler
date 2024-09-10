@@ -51,6 +51,36 @@ test_that("determine_cell_suppression correctly suppresses cells", {
   testthat::expect_equal(soln, test$suppress, check.attributes = FALSE)
 })
 
+test_that("Correctly deals with constraints hidden by prior cells", {
+  # A prior implementation did not conduct a final pass over cells,
+  # resulting in one cell implementing a later constraint that interfered
+  # with a prior set of constraints that passed initial solutions before
+  # all cells had been assessed
+  n <- c(262L, 78L, 340L, 110L, 59L, 169L, 52L, 16L, 68L, 54L, 16L, 70L, 97L, 17L,
+         114L, 90L, 37L, 127L, 1L, 3L, 4L, 0L, 0L, 0L, 666L, 226L, 892L)
+  ns <- matrix(c(1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+                 1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0,
+                 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0,
+                 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
+                 0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+                 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
+                 0, 0, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+                 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0,
+                 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+                 0, 0, 1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+                 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0,
+                 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1,
+                 1, 1, 1, 1, 1, 1, 1, 1, -1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+                 -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, -1), ncol = 27)
+
+  soln <- c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE,
+            FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+            TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)
+
+  expect_identical(determine_cell_suppression(n, ns), soln)
+})
+
 test_that("suppress_secondary deals with an empty nullspace (#9)", {
   data <- seq(0, 10, by = 2)
   suppress <- c(FALSE, TRUE, TRUE, FALSE, FALSE, FALSE)
