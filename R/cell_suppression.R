@@ -256,13 +256,9 @@ suppress_secondary <- function(
 
   repeat {
 
-    attacker_success <- final_loop <- FALSE
+    attacker_success <- FALSE
 
     for (attack.ik in ik) { # Attack all cells to be suppressed
-
-      for (j in seq_len(max_iter)) {
-
-        attacker_success <- FALSE
 
       # Calculate known bounds
         if (SPL[attack.ik] > 0L || UPL[attack.ik] > 0L) {
@@ -291,7 +287,7 @@ suppress_secondary <- function(
             )
           )
 
-          attacker_success <- final_loop <- TRUE
+          attacker_success <- TRUE
         }
 
         # Evaluate LPL subproblem
@@ -312,7 +308,7 @@ suppress_secondary <- function(
             )
           )
 
-          attacker_success <- final_loop <- TRUE
+          attacker_success <- TRUE
         }
 
         # Evaluate SPL subproblem
@@ -338,33 +334,22 @@ suppress_secondary <- function(
             )
           )
 
-          attacker_success <- final_loop <- TRUE
+          attacker_success <- TRUE
 
         }
 
-        if (!attacker_success) break
-
-        master_soln <- ROI_solve(master_lp, ...)
-        candidate_suppression <- as.logical(master_soln$solution)
-
-      }
-
-      if (identical(j, max_iter) && attacker_success)
-        stop("Maximum attacker iterations reached. Consider increasing the max_iter parameter")
-
     }
 
-    # If there is no successful avenue of attack, break out
-    if (!final_loop) break
+    # If there is no successful avenue of attack, calculation complete
+    if (!attacker_success) break
 
     # Exit with error if iteration limit exceeded
-    if (identical(i, max_iter) && attacker_success)
+    if (identical(i, max_iter))
       stop("Maximum attacker iterations reached. Consider increasing the max_iter parameter")
 
     # Re-solve master LP with new constraints to feed next cycle
     i <- i + 1L
-    master_soln <- ROI_solve(master_lp, ...)
-    candidate_suppression <- as.logical(master_soln$solution)
+    candidate_suppression <- as.logical(ROI_solve(master_lp, ...)$solution)
 
   }
 
