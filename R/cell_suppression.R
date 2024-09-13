@@ -350,6 +350,7 @@ suppress_secondary <- function(
     # Re-solve master LP with new constraints to feed next cycle
     i <- i + 1L
     candidate_suppression <- as.logical(ROI_solve(master_lp, ...)$solution)
+    candidate_suppression <- ROI_solve(master_lp, ...)$solution >= 0.5
 
   }
 
