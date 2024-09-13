@@ -19,7 +19,9 @@
 #'   cells that should be primary suppressed, and `FALSE` otherwise.
 #' @param nullspace A matrix representation of the table total and subtotal
 #'   relationships. For any vector N that has valid totals and subtotals,
-#'   `nullspace %*% N` should be a zero vector.
+#'   `nullspace %*% N` should be a zero vector. A `MappingTable` used to build
+#'   the counts from `count_aggregate()` will have a `nullspace` element that
+#'   may be used here representing these relationships.
 #' @param ... For `suppress_secondary`, passed to [ROI::ROI_solve]. For
 #'   `determine_cell_suppression`: Passed to `suppress_secondary`.
 #' @param small_min,small_max The bounds for small cells which must be
@@ -36,7 +38,8 @@
 #'   Other options include `log(N)`, which prioritises smaller cells.
 #' @param solver The solver used for [ROI::ROI_solve].
 #' @param max_iter The maximum number of times to attack each cell requiring
-#'   suppression.
+#'   suppression. If insufficient, an error will be thrown to prevent the return
+#'   of an incomplete suppression pattern.
 #'
 #' @return Both these functions return a logical vector of cells that need to be
 #'   suppressed
