@@ -51,28 +51,29 @@ test_that("determine_cell_suppression correctly suppresses cells", {
   testthat::expect_equal(soln, test$suppress, check.attributes = FALSE)
 })
 
-test_that("Correctly deals with constraints hidden by prior cells", {
+test_that("secondary suppression does not miss cells (#17)", {
   # A prior implementation did not conduct a final pass over cells,
   # resulting in one cell implementing a later constraint that interfered
   # with a prior set of constraints that passed initial solutions before
   # all cells had been assessed
 
-  test_output <- read_test_suppression_file("test-prior-constraints.tsv")
+  test_output <- read_test_suppression_file("data/test-prior-constraints.tsv")
 
-  expect_identical(determine_cell_suppression(test_output$counts,
-                                              test_output$nullspace),
-                   test_output$suppress_pattern)
+  expect_identical(
+    determine_cell_suppression(test_output$counts, test_output$nullspace),
+    test_output$suppress_pattern
+  )
 })
 
-test_that("Solves highly dimensional tables that may return non-integer LP solutions", {
+test_that("LP solutions with non-integer results give correct suppressions (#17)", {
   # as.logical(solution) turns any non-zero x*, such as floating points, into TRUE
-  # See Issue #17 for further details
 
-  test_output <- read_test_suppression_file("test-high-dim.tsv")
+  test_output <- read_test_suppression_file("data/test-high-dim.tsv")
 
-  expect_identical(determine_cell_suppression(test_output$counts,
-                                              test_output$nullspace),
-                   test_output$suppress_pattern)
+  expect_identical(
+    determine_cell_suppression(test_output$counts, test_output$nullspace),
+    test_output$suppress_pattern
+  )
 })
 
 test_that("suppress_secondary deals with an empty nullspace (#9)", {
