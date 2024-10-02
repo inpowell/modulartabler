@@ -19,7 +19,9 @@
 #'   cells that should be primary suppressed, and `FALSE` otherwise.
 #' @param nullspace A matrix representation of the table total and subtotal
 #'   relationships. For any vector N that has valid totals and subtotals,
-#'   `nullspace %*% N` should be a zero vector.
+#'   `nullspace %*% N` should be a zero vector. A `MappingTable` used to build
+#'   the counts from `count_aggregate()` will have a `nullspace` element that
+#'   may be used here representing these relationships.
 #' @param ... For `suppress_secondary`, passed to [ROI::ROI_solve]. For
 #'   `determine_cell_suppression`: Passed to `suppress_secondary`.
 #' @param small_min,small_max The bounds for small cells which must be
@@ -36,7 +38,8 @@
 #'   Other options include `log(N)`, which prioritises smaller cells.
 #' @param solver The solver used for [ROI::ROI_solve].
 #' @param max_iter The maximum number of times to attack each cell requiring
-#'   suppression.
+#'   suppression. If insufficient, an error will be thrown to prevent the return
+#'   of an incomplete suppression pattern.
 #'
 #' @return Both these functions return a logical vector of cells that need to be
 #'   suppressed
@@ -149,7 +152,7 @@ suppress_secondary <- function(
     cli::cli_abort(info, class = c('SPL-error', 'bounds-error'))
   }
 
-    # Determine cells requiring primary suppression
+  # Determine cells requiring primary suppression
   ik <- which(suppress)
   p <- length(ik)
 
@@ -253,8 +256,12 @@ suppress_secondary <- function(
   # Initial suppression requirement
   candidate_suppression <- suppress
 
-  for (attack.ik in ik) { # Loop over cells to be suppressed
-    for (i in seq_len(max_iter)) {
+  i <- 1L
+  repeat {
+    attacker_success <- FALSE
+
+    for (attack.ik in ik) { # Attack all cells to be suppressed
+      # Calculate known bounds
       if (SPL[attack.ik] > 0L || UPL[attack.ik] > 0L) {
         attacker.max <- ROI_solve(UPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
       }
@@ -263,9 +270,7 @@ suppress_secondary <- function(
         attacker.min <- ROI_solve(LPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
       }
 
-      # Is the attacker subproblem successful with these constraints?
-      attacker_success <- FALSE
-
+      # Evaluate UPL subproblem
       if (UPL[attack.ik] > 0L &&
           identical(attacker.max$status$code, 0L) &&
           attacker.max$objval < N[attack.ik] + UPL[attack.ik]) {
@@ -286,6 +291,7 @@ suppress_secondary <- function(
         attacker_success <- TRUE
       }
 
+      # Evaluate LPL subproblem
       if (LPL[attack.ik] > 0L &&
           identical(attacker.min$status$code, 0L) &&
           -attacker.min$objval > N[attack.ik] - LPL[attack.ik]) {
@@ -306,6 +312,7 @@ suppress_secondary <- function(
         attacker_success <- TRUE
       }
 
+      # Evaluate SPL subproblem
       if (SPL[attack.ik] > 0L &&
           identical(attacker.max$status$code, 0L) &&
           identical(attacker.min$status$code, 0L) &&
@@ -329,24 +336,34 @@ suppress_secondary <- function(
         )
 
         attacker_success <- TRUE
-
       }
-
-      # If there is no successful avenue of attack, move to the next suppressed cell
-      if (!attacker_success) break
-
-      master_soln <- ROI_solve(master_lp, ...)
-
-      candidate_suppression <- as.logical(master_soln$solution)
     }
 
-    if (identical(i, max_iter) && attacker_success) {
-      stop("Maximum attacker iterations reached")
+    # If there is no successful avenue of attack, calculation complete
+    if (!attacker_success) break
+
+    # Exit with error if iteration limit exceeded
+    if (identical(i, max_iter))
+      stop("Maximum attacker iterations reached. Consider increasing the max_iter parameter")
+
+    # Re-solve master LP with new constraints to feed next cycle
+    i <- i + 1L
+
+    master_solution <- ROI_solve(master_lp, ...)
+
+    if (master_solution$status$code == 0) {
+      candidate_suppression <- master_solution$solution >= 0.5
+    } else {
+      cli::cli_abort(c(
+        "Error code received from the LP solver.",
+        'i' = purrr::imap_chr(master_solution$status$msg, function(x, y) paste0(y, ": ", x, '\n'))
+      ))
     }
   }
 
   # Any primary suppressed cell should be suppressed in output
-  stopifnot(all(candidate_suppression[suppress]))
+  if (!all(candidate_suppression[suppress]))
+    stop("Optimal solution resulted in primary suppression failures")
 
   return(candidate_suppression)
 }

@@ -27,7 +27,9 @@ suppress_secondary(
 
 \item{nullspace}{A matrix representation of the table total and subtotal
 relationships. For any vector N that has valid totals and subtotals,
-\code{nullspace \%*\% N} should be a zero vector.}
+\code{nullspace \%*\% N} should be a zero vector. A \code{MappingTable} used to build
+the counts from \code{count_aggregate()} will have a \code{nullspace} element that
+may be used here representing these relationships.}
 
 \item{small_min, small_max}{The bounds for small cells which must be
 suppressed. Cells will be suppressed if they lie between these two bounds,
@@ -54,7 +56,8 @@ knows that any cell is between 0 and double its true value.}
 \item{solver}{The solver used for \link[ROI:ROI_solve]{ROI::ROI_solve}.}
 
 \item{max_iter}{The maximum number of times to attack each cell requiring
-suppression.}
+suppression. If insufficient, an error will be thrown to prevent the return
+of an incomplete suppression pattern.}
 }
 \value{
 Both these functions return a logical vector of cells that need to be
