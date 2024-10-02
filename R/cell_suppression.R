@@ -255,14 +255,12 @@ suppress_secondary <- function(
 
   # Initial suppression requirement
   candidate_suppression <- suppress
+
   i <- 1L
-
   repeat {
-
     attacker_success <- FALSE
 
     for (attack.ik in ik) { # Attack all cells to be suppressed
-
       # Calculate known bounds
       if (SPL[attack.ik] > 0L || UPL[attack.ik] > 0L) {
         attacker.max <- ROI_solve(UPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
@@ -338,9 +336,7 @@ suppress_secondary <- function(
         )
 
         attacker_success <- TRUE
-
       }
-
     }
 
     # If there is no successful avenue of attack, calculation complete
@@ -355,13 +351,14 @@ suppress_secondary <- function(
 
     master_solution <- ROI_solve(master_lp, ...)
 
-    if (master_solution$status$code == 0)
-      candidate_suppression <- master_solution$solution >= 0.5 else
-        cli::cli_abort(c(
-          "Error code received from the LP solver.", "-----",
-          purrr::imap_chr(master_solution$status$msg, function(x, y) paste0(y, ": ", x))
-        ))
-
+    if (master_solution$status$code == 0) {
+      candidate_suppression <- master_solution$solution >= 0.5
+    } else {
+      cli::cli_abort(c(
+        "Error code received from the LP solver.",
+        'i' = purrr::imap_chr(master_solution$status$msg, function(x, y) paste0(y, ": ", x, '\n'))
+      ))
+    }
   }
 
   # Any primary suppressed cell should be suppressed in output
@@ -369,7 +366,6 @@ suppress_secondary <- function(
     stop("Optimal solution resulted in primary suppression failures")
 
   return(candidate_suppression)
-
 }
 
 #' Convenience function to convert matrix to dense representation
