@@ -76,3 +76,24 @@ test_that("counting with other/total arguments works", {
   )
   expect_equal(MT_both$count_aggregate(exampledata), exp_both)
 })
+
+test_that('FactorMappingTable works with integer raw values', {
+  exampledata <- data.frame(groupid = rep(
+    c(1L, 2L, 3L, NA_integer_),
+    times = c(10, 20, 30, 40)
+  ))
+  MT <- FactorMappingTable$new(
+    'Group', 'groupid',
+    'One' = 1L,
+    'Two' = 2L,
+    'Three' = 3L,
+    .other = NULL,
+    .total = 'Total'
+  )
+  expected <- tibble(
+    Group = forcats::as_factor(c('One', 'Two', 'Three', 'Total')),
+    n = c(10L, 20L, 30L, 60L)
+  )
+
+  expect_equal(MT$count_aggregate(exampledata), expected)
+})
