@@ -14,7 +14,10 @@
 #' suppression requirements (e.g. by allowing small cells to be visible if they
 #' belong to "Unknown" values).
 #'
-#' @param N The variable containing counts.
+#' @param N The variable containing counts. This may be a
+#'   [`masked()`][maskr::masked] vector from `maskr`, when the counts will be
+#'   taken from [unmask()] and default primary suppression pattern from
+#'   [mask()].
 #' @param suppress A logical vector of the same size as `N` that is `TRUE` for
 #'   cells that should be primary suppressed, and `FALSE` otherwise.
 #' @param nullspace A matrix representation of the table total and subtotal
@@ -41,8 +44,8 @@
 #'   suppression. If insufficient, an error will be thrown to prevent the return
 #'   of an incomplete suppression pattern.
 #'
-#' @return Both these functions return a logical vector of cells that need to be
-#'   suppressed
+#' @return A masked vector of counts where suppressed cells are generally masked
+#'   when being printed or written to output.
 #'
 #' @references Fischetti M, Salazar JJ. Solving the cell suppression problem on
 #'   tabular data with linear constraints. Management Science.
@@ -62,10 +65,11 @@ determine_cell_suppression <- function(
 #' @rdname determine_cell_suppression
 #' @importFrom ROI OP constraints constraints<- L_objective L_constraint V_bound
 #'   ROI_solve
+#' @importFrom maskr masked mask unmask
 #' @export
 suppress_secondary <- function(
     N,
-    suppress,
+    suppress = mask(N),
     nullspace,
     LPL = 0L, UPL = 0L, SPL = 1L,
     w = N,
@@ -73,7 +77,12 @@ suppress_secondary <- function(
     ...,
     solver = 'highs',
     max_iter = 100L) {
-  if (nrow(nullspace) == 0) return(suppress)
+  force(suppress)
+  if (inherits(N, 'masked')) {
+    N <- unmask(N)
+  }
+
+  if (nrow(nullspace) == 0) return(masked(N, suppress))
 
   if (!ROI::ROI_require_solver(solver, warn = -1L)) {
     cli::cli_abort(c(
@@ -157,10 +166,10 @@ suppress_secondary <- function(
   p <- length(ik)
 
   if (identical(p, 0L))
-    return(rep(FALSE, n))
+    return(masked(N, rep(FALSE, n)))
 
   if (is.null(nullspace))
-    return(suppress)
+    return(masked(N, suppress))
 
   M <- nullspace
   m <- nrow(nullspace)
@@ -365,7 +374,7 @@ suppress_secondary <- function(
   if (!all(candidate_suppression[suppress]))
     stop("Optimal solution resulted in primary suppression failures")
 
-  return(candidate_suppression)
+  return(masked(N, candidate_suppression))
 }
 
 #' Convenience function to convert matrix to dense representation

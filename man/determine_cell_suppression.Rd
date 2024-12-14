@@ -9,7 +9,7 @@ determine_cell_suppression(N, nullspace, small_min = 1L, small_max = 4L, ...)
 
 suppress_secondary(
   N,
-  suppress,
+  suppress = mask(N),
   nullspace,
   LPL = 0L,
   UPL = 0L,
@@ -23,7 +23,10 @@ suppress_secondary(
 )
 }
 \arguments{
-\item{N}{The variable containing counts.}
+\item{N}{The variable containing counts. This may be a
+\code{\link[maskr:masked]{masked()}} vector from \code{maskr}, when the counts will be
+taken from \code{\link[=unmask]{unmask()}} and default primary suppression pattern from
+\code{\link[=mask]{mask()}}.}
 
 \item{nullspace}{A matrix representation of the table total and subtotal
 relationships. For any vector N that has valid totals and subtotals,
@@ -60,8 +63,8 @@ suppression. If insufficient, an error will be thrown to prevent the return
 of an incomplete suppression pattern.}
 }
 \value{
-Both these functions return a logical vector of cells that need to be
-suppressed
+A masked vector of counts where suppressed cells are generally masked
+when being printed or written to output.
 }
 \description{
 These functions implement primary and secondary suppression in a contingency

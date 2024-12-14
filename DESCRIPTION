@@ -32,6 +32,7 @@ Imports:
     forcats (>= 1.0.0),
     ROI (>= 1.0.1),
     cli (>= 3.6.1),
-    rlang (>= 1.1.1)
+    rlang (>= 1.1.1),
+    maskr
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
