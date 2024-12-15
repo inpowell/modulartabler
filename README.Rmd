@@ -102,10 +102,7 @@ This shows all the information we need, including that manual cars tend to have 
 If this table referred to people, then it might be prudent to suppress small cells. In particular, we might want to suppress the cell with count 3.
 
 ```{r}
-crosstab$suppress <- 0L < crosstab$n & crosstab$n <= 3L
-
-crosstab$n.primary <- crosstab$n
-crosstab$n.primary[crosstab$suppress] <- NA
+crosstab$n.primary <- maskr::masked(crosstab$n, mask = 0L < crosstab$n & crosstab$n <= 3L)
 ```
 
 When we look at this table though, it is clear we can easily recover the value of the suppressed cell. Indeed, the cell's row total is 18, and $18 - 15 = 3$. Also, its column total is 13, and the complementary cell for 20+ mpg is 10, and $13 - 10 = 3$ as well.
@@ -127,9 +124,8 @@ str(CrossMpgTransmission$nullspace)
 Each row of this matrix describes a different relationship within the table. We can use this information to conduct secondary suppression using the `suppress_secondary()` function.
 
 ```{r}
-crosstab$suppress2ary <- suppress_secondary(
-  N = crosstab$n,
-  suppress = crosstab$suppress,
+crosstab$n.secondary <- suppress_secondary(
+  N = crosstab$n.primary,
   # NB crosstab must have same order as CrossMpgTransmission$mtab 
   nullspace = CrossMpgTransmission$nullspace
 )
@@ -138,9 +134,6 @@ crosstab$suppress2ary <- suppress_secondary(
 When we look at the table following this suppression, there is no way to back-calculate the primary-suppressed cell exactly.
 
 ```{r}
-crosstab$n.secondary <- crosstab$n
-crosstab$n.secondary[crosstab$suppress2ary] <- NA
-
 convert_tabular(
   crosstab,
   `Miles per galleon` ~ Transmission,
