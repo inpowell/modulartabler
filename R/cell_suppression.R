@@ -78,7 +78,7 @@ suppress_secondary <- function(
     solver = 'highs',
     max_iter = 100L) {
   force(suppress)
-  if (inherits(N, 'masked')) {
+  if (inherits(N, c('masked', "maskr_masked"))) {
     N <- unmask(N)
   }
 
