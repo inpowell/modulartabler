@@ -85,3 +85,24 @@ test_that("BaseMappingTable with empty nullspace evaluates cleanly", {
 
   expect_identical(MT$nullspace, ns)
 })
+
+test_that("matrix is correct even if input map is not ordered (#22)", {
+  map <- tibble(
+    Map = c('A', 'B', 'B+C', 'C', 'B+C', '?',   rep('Total', 4L)),
+    raw = c('a', 'b',   'b', 'c',   'c',  NA,  'a', 'b', 'c', NA)
+  )
+
+  map$Map <- forcats::as_factor(map$Map) |>
+    forcats::fct_relevel('B+C', '?', 'Total', after = Inf)
+
+  MT <- BaseMappingTable$new(map, 'raw', 'Map')
+
+  mat <- rbind(
+    c(1L, 0L, 0L, 0L, 0L, 1L),
+    c(0L, 1L, 0L, 1L, 0L, 1L),
+    c(0L, 0L, 1L, 1L, 0L, 1L),
+    c(0L, 0L, 0L, 0L, 1L, 1L)
+  )
+
+  expect_identical(MT$matrix, mat)
+})

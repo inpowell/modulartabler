@@ -257,10 +257,14 @@ BaseMappingTable <- R6::R6Class(
       if (length(intersect(raw_cols, table_cols)))
         stop('raw_cols and table_cols must not have any elements in common')
 
-      private$.map <- tibble::as_tibble(map)
       private$.data_cols <- data_cols
       private$.rawside_cols <- raw_cols
       private$.tabside_cols <- table_cols
+
+      private$.map <- dplyr::arrange(
+        tibble::as_tibble(map),
+        dplyr::across(tidyselect::all_of(c(table_cols, data_cols)))
+      )
     }
   ),
 
@@ -273,8 +277,7 @@ BaseMappingTable <- R6::R6Class(
     mraw = function() {
       private$.map |>
         dplyr::select(tidyselect::all_of(private$.rawside_cols)) |>
-        dplyr::distinct() |>
-        dplyr::arrange(dplyr::across(tidyselect::all_of(private$.rawside_cols)))
+        dplyr::distinct() # distinct() subsets rows _in same order_ as provided
     },
 
     #' @field mtab The table-side data that corresponds to columns of the matrix
@@ -282,18 +285,20 @@ BaseMappingTable <- R6::R6Class(
     mtab = function(){
       private$.map |>
         dplyr::select(tidyselect::all_of(private$.tabside_cols)) |>
-        dplyr::distinct() |>
-        dplyr::arrange(dplyr::across(tidyselect::all_of(private$.tabside_cols)))
+        dplyr::distinct() # distinct() subsets rows _in same order_ as provided
     },
 
     #' @field matrix A matrix representation of the mapping table that indicates
     #'   which raw values (in rows) are mapped to table cells (in columns).
-    #' @importFrom dplyr mutate cur_group_id
-    #' @importFrom tidyselect all_of
+    #' @importFrom dplyr mutate row_number inner_join
     matrix = function() {
+      # self$mraw and self$mtab are guaranteed to be ordered and distinct
+      mraw <- self$mraw |> mutate(.I = row_number())
+      mtab <- self$mtab |> mutate(.J = row_number())
+
       idx <- private$.map |>
-        mutate(.I = cur_group_id(), .by = all_of(private$.rawside_cols)) |>
-        mutate(.J = cur_group_id(), .by = all_of(private$.tabside_cols))
+        inner_join(mraw, by = private$.rawside_cols) |>
+        inner_join(mtab, by = private$.tabside_cols)
 
       mat <- matrix(0L, nrow = max(idx$.I), ncol= max(idx$.J))
       mat[cbind(idx$.I, idx$.J)] <- 1L
