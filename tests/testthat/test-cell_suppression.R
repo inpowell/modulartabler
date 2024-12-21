@@ -32,6 +32,7 @@ test_that("determine_cell_suppression correctly suppresses cells", {
   )
 
   test <- bind_rows(test_tab, test_rtot, test_atot, test_tot)
+  test$masked <- masked(test$n, test$suppress)
 
   nullspace <- rbind(
     c(1, 0, 0,  1, 0, 0,  1, 0, 0,  -1,  0,  0,   0,  0,  0,   0),
@@ -48,7 +49,7 @@ test_that("determine_cell_suppression correctly suppresses cells", {
   stopifnot(all(nullspace %*% test$n == 0L))
 
   soln <- with(test, determine_cell_suppression(N = n, nullspace, small_max = 9L))
-  testthat::expect_equal(soln, test$suppress, check.attributes = FALSE)
+  testthat::expect_equal(soln, test$masked, check.attributes = FALSE)
 })
 
 test_that("secondary suppression does not miss cells (#17)", {
@@ -61,7 +62,7 @@ test_that("secondary suppression does not miss cells (#17)", {
 
   expect_identical(
     determine_cell_suppression(test_output$counts, test_output$nullspace),
-    test_output$suppress_pattern
+    masked(test_output$counts, test_output$suppress_pattern)
   )
 })
 
@@ -72,17 +73,19 @@ test_that("LP solutions with non-integer results give correct suppressions (#17)
 
   expect_identical(
     determine_cell_suppression(test_output$counts, test_output$nullspace),
-    test_output$suppress_pattern
+    masked(test_output$counts, test_output$suppress_pattern)
   )
 })
 
 test_that("suppress_secondary deals with an empty nullspace (#9)", {
   data <- seq(0, 10, by = 2)
   suppress <- c(FALSE, TRUE, TRUE, FALSE, FALSE, FALSE)
+  expected <- masked(data, suppress)
+
   nullspace <- matrix(NA_real_, nrow = 0, ncol = 6)
   expect_equal(
     suppress_secondary(data, suppress, nullspace),
-    suppress
+    expected
   )
 })
 
@@ -102,7 +105,7 @@ test_that("suppress_secondary aborts if bounds are too tight", {
   )
   expect_equal(
     suppress_secondary(N, suppress, nullspace, LB = N, UB = N, UPL = 2L, SPL = 0L),
-    c(TRUE, TRUE, FALSE)
+    masked(N, c(TRUE, TRUE, FALSE))
   )
 
   # A LPL of 3 means that maximum lower attacker guess must be A - 3 = -1 < 0
@@ -112,7 +115,7 @@ test_that("suppress_secondary aborts if bounds are too tight", {
   )
   expect_equal(
     suppress_secondary(N, suppress, nullspace, LB = N, UB = N, LPL = 2L, SPL = 0L),
-    c(TRUE, TRUE, FALSE)
+    masked(N, c(TRUE, TRUE, FALSE))
   )
 
   # A SPL of 5 means that the distance between upper and lower attacker guesses
@@ -123,6 +126,6 @@ test_that("suppress_secondary aborts if bounds are too tight", {
   )
   expect_equal(
     suppress_secondary(N, suppress, nullspace, LB = N, UB = N, SPL = 4L),
-    c(TRUE, TRUE, FALSE)
+    masked(N, c(TRUE, TRUE, FALSE))
   )
 })

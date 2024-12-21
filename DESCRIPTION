@@ -33,6 +33,7 @@ Imports:
     ROI (>= 1.0.1),
     cli (>= 3.6.1),
     rlang (>= 1.1.1),
-    vctrs (>= 0.6.5)
+    vctrs (>= 0.6.5),
+    maskr (>= 0.1.0)
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)

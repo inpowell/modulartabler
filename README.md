@@ -162,10 +162,7 @@ small cells. In particular, we might want to suppress the cell with
 count 3.
 
 ``` r
-crosstab$suppress <- 0L < crosstab$n & crosstab$n <= 3L
-
-crosstab$n.primary <- crosstab$n
-crosstab$n.primary[crosstab$suppress] <- NA
+crosstab$n.primary <- maskr::masked(crosstab$n, mask = 0L < crosstab$n & crosstab$n <= 3L)
 ```
 
 When we look at this table though, it is clear we can easily recover the
@@ -180,14 +177,14 @@ convert_tabular(
   measures = 'n.primary'
 )
 #> # A tibble: 6 × 4
-#>   `Miles per galleon` Automatic Manual Total
-#>   <fct>                   <int>  <int> <int>
-#> 1 <20.0                      15     NA    18
-#> 2 20.0-24.9                   4      4     8
-#> 3 25.0+                       0      6     6
-#> 4 20.0+                       4     10    14
-#> 5 Unknown                     0      0     0
-#> 6 Total                      19     13    32
+#>   `Miles per galleon` Automatic    Manual     Total
+#>   <fct>               <int+msk> <int+msk> <int+msk>
+#> 1 <20.0                      15      n.p.        18
+#> 2 20.0-24.9                   4         4         8
+#> 3 25.0+                       0         6         6
+#> 4 20.0+                       4        10        14
+#> 5 Unknown                     0         0         0
+#> 6 Total                      19        13        32
 ```
 
 So, we need to conduct secondary suppression. The relationships of a
@@ -204,9 +201,8 @@ table. We can use this information to conduct secondary suppression
 using the `suppress_secondary()` function.
 
 ``` r
-crosstab$suppress2ary <- suppress_secondary(
-  N = crosstab$n,
-  suppress = crosstab$suppress,
+crosstab$n.secondary <- suppress_secondary(
+  N = crosstab$n.primary,
   # NB crosstab must have same order as CrossMpgTransmission$mtab 
   nullspace = CrossMpgTransmission$nullspace
 )
@@ -216,23 +212,20 @@ When we look at the table following this suppression, there is no way to
 back-calculate the primary-suppressed cell exactly.
 
 ``` r
-crosstab$n.secondary <- crosstab$n
-crosstab$n.secondary[crosstab$suppress2ary] <- NA
-
 convert_tabular(
   crosstab,
   `Miles per galleon` ~ Transmission,
   measures = 'n.secondary'
 )
 #> # A tibble: 6 × 4
-#>   `Miles per galleon` Automatic Manual Total
-#>   <fct>                   <int>  <int> <int>
-#> 1 <20.0                      NA     NA    18
-#> 2 20.0-24.9                  NA     NA     8
-#> 3 25.0+                       0      6     6
-#> 4 20.0+                      NA     NA    14
-#> 5 Unknown                     0      0     0
-#> 6 Total                      19     13    32
+#>   `Miles per galleon` Automatic    Manual     Total
+#>   <fct>               <int+msk> <int+msk> <int+msk>
+#> 1 <20.0                    n.p.      n.p.        18
+#> 2 20.0-24.9                n.p.      n.p.         8
+#> 3 25.0+                       0         6         6
+#> 4 20.0+                    n.p.      n.p.        14
+#> 5 Unknown                     0         0         0
+#> 6 Total                      19        13        32
 ```
 
 Unfortunately, we have also lost a lot of information in our table. This
