@@ -291,7 +291,10 @@ suppress_secondary <- function(
           constraints(master_lp),
           # ref, eqn (25)
           L_constraint(
-            pmin(alpha * UB + beta * LB, UPL[attack.ik]), # Sec 4.2.1
+            zapsmall(
+              pmin(alpha * UB + beta * LB, UPL[attack.ik]), # Sec 4.2.1
+              digits = 9L # Hack (HiGHS) - Negligibly small constraints cause error
+            ),
             dir = '>=',
             rhs = UPL[attack.ik]
           )
@@ -312,7 +315,10 @@ suppress_secondary <- function(
           constraints(master_lp),
           # ref, eqn (26)
           L_constraint(
-            pmin(alpha * UB + beta * LB, LPL[attack.ik]), # Sec 4.2.1
+            zapsmall(
+              pmin(alpha * UB + beta * LB, LPL[attack.ik]), # Sec 4.2.1
+              digits = 9L # Hack (HiGHS) - Negligibly small constraints cause error
+            ),
             dir = '>=',
             rhs = LPL[attack.ik]
           )
@@ -338,7 +344,10 @@ suppress_secondary <- function(
           constraints(master_lp),
           # ref, eqn (27)
           L_constraint(
-            pmin(alpha * UB + beta * LB, SPL[attack.ik]), # Sec 4.2.1
+            zapsmall(
+              pmin(alpha * UB + beta * LB, SPL[attack.ik]), # Sec 4.2.1
+              digits = 9L # Hack (HiGHS) - Negligibly small constraints cause error
+            ),
             dir = '>=',
             rhs = SPL[attack.ik]
           )
@@ -358,7 +367,7 @@ suppress_secondary <- function(
     # Re-solve master LP with new constraints to feed next cycle
     i <- i + 1L
 
-    master_solution <- ROI_solve(master_lp, ...)
+    master_solution <- ROI_solve(master_lp, solver = solver, ...)
 
     if (master_solution$status$code == 0) {
       candidate_suppression <- master_solution$solution >= 0.5
