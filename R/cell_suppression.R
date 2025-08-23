@@ -271,6 +271,7 @@ suppress_secondary <- function(
 
     for (attack.ik in ik) { # Attack all cells to be suppressed
       # Calculate known bounds
+
       if (SPL[attack.ik] > 0L || UPL[attack.ik] > 0L) {
         attacker.max <- ROI_solve(UPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
       }
@@ -287,14 +288,16 @@ suppress_secondary <- function(
         alpha <- attacker.max$solution[seq_len(n)]
         beta <- attacker.max$solution[n + seq_len(n)]
 
+        # Hack (HiGHS): some problems result in numerically small solutions that
+        # can cause errors in constraints for later problems
+        alpha <- zapsmall(alpha, digits = 9L)
+        beta <- zapsmall(beta, digits = 9L)
+
         constraints(master_lp) <- c(
           constraints(master_lp),
           # ref, eqn (25)
           L_constraint(
-            zapsmall(
-              pmin(alpha * UB + beta * LB, UPL[attack.ik]), # Sec 4.2.1
-              digits = 9L # Hack (HiGHS) - Negligibly small constraints cause error
-            ),
+            pmin(alpha * UB + beta * LB, UPL[attack.ik]), # Sec 4.2.1
             dir = '>=',
             rhs = UPL[attack.ik]
           )
@@ -311,14 +314,16 @@ suppress_secondary <- function(
         alpha <- attacker.min$solution[seq_len(n)]
         beta <- attacker.min$solution[n + seq_len(n)]
 
+        # Hack (HiGHS): some problems result in numerically small solutions that
+        # can cause errors in constraints for later problems
+        alpha <- zapsmall(alpha, digits = 9L)
+        beta <- zapsmall(beta, digits = 9L)
+
         constraints(master_lp) <- c(
           constraints(master_lp),
           # ref, eqn (26)
           L_constraint(
-            zapsmall(
-              pmin(alpha * UB + beta * LB, LPL[attack.ik]), # Sec 4.2.1
-              digits = 9L # Hack (HiGHS) - Negligibly small constraints cause error
-            ),
+            pmin(alpha * UB + beta * LB, LPL[attack.ik]), # Sec 4.2.1
             dir = '>=',
             rhs = LPL[attack.ik]
           )
@@ -340,14 +345,16 @@ suppress_secondary <- function(
         beta <- attacker.min$solution[n + seq_len(n)] +
           attacker.max$solution[n + seq_len(n)]
 
+        # Hack (HiGHS): some problems result in numerically small solutions that
+        # can cause errors in constraints for later problems
+        alpha <- zapsmall(alpha, digits = 9L)
+        beta <- zapsmall(beta, digits = 9L)
+
         constraints(master_lp) <- c(
           constraints(master_lp),
           # ref, eqn (27)
           L_constraint(
-            zapsmall(
-              pmin(alpha * UB + beta * LB, SPL[attack.ik]), # Sec 4.2.1
-              digits = 9L # Hack (HiGHS) - Negligibly small constraints cause error
-            ),
+            pmin(alpha * UB + beta * LB, SPL[attack.ik]), # Sec 4.2.1
             dir = '>=',
             rhs = SPL[attack.ik]
           )
@@ -367,7 +374,7 @@ suppress_secondary <- function(
     # Re-solve master LP with new constraints to feed next cycle
     i <- i + 1L
 
-    master_solution <- ROI_solve(master_lp, solver = solver, ...)
+    master_solution <- ROI_solve(master_lp, ...)
 
     if (master_solution$status$code == 0) {
       candidate_suppression <- master_solution$solution >= 0.5
