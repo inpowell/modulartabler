@@ -271,7 +271,6 @@ suppress_secondary <- function(
 
     for (attack.ik in ik) { # Attack all cells to be suppressed
       # Calculate known bounds
-
       if (SPL[attack.ik] > 0L || UPL[attack.ik] > 0L) {
         attacker.max <- ROI_solve(UPL_problem(candidate_suppression, attack.ik), solver = solver, ...)
       }
