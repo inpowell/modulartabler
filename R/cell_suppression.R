@@ -287,6 +287,11 @@ suppress_secondary <- function(
         alpha <- attacker.max$solution[seq_len(n)]
         beta <- attacker.max$solution[n + seq_len(n)]
 
+        # Hack (HiGHS): some problems result in numerically small solutions that
+        # can cause errors in constraints for later problems
+        alpha <- zapsmall(alpha, digits = 9L)
+        beta <- zapsmall(beta, digits = 9L)
+
         constraints(master_lp) <- c(
           constraints(master_lp),
           # ref, eqn (25)
@@ -307,6 +312,11 @@ suppress_secondary <- function(
         # Successful solution
         alpha <- attacker.min$solution[seq_len(n)]
         beta <- attacker.min$solution[n + seq_len(n)]
+
+        # Hack (HiGHS): some problems result in numerically small solutions that
+        # can cause errors in constraints for later problems
+        alpha <- zapsmall(alpha, digits = 9L)
+        beta <- zapsmall(beta, digits = 9L)
 
         constraints(master_lp) <- c(
           constraints(master_lp),
@@ -333,6 +343,11 @@ suppress_secondary <- function(
 
         beta <- attacker.min$solution[n + seq_len(n)] +
           attacker.max$solution[n + seq_len(n)]
+
+        # Hack (HiGHS): some problems result in numerically small solutions that
+        # can cause errors in constraints for later problems
+        alpha <- zapsmall(alpha, digits = 9L)
+        beta <- zapsmall(beta, digits = 9L)
 
         constraints(master_lp) <- c(
           constraints(master_lp),
